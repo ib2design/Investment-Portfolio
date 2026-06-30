@@ -101,6 +101,21 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+function companyPartnerIcon(partnerCount) {
+  const count = Number(partnerCount) || 1;
+  return count <= 1 ? '\u{1F464}' : '\u{1F465}';
+}
+
+function companyProjectMetaMarkup(companyId, partnerCount) {
+  const projectCount = getVisibleProjectsForCompany(companyId).length;
+  const noProjects = getProjectsForCompany(data, companyId).length === 0;
+  const warning = noProjects
+    ? '<span class="company-no-projects-icon" aria-hidden="true">\u{26A0}</span> '
+    : '';
+
+  return `${warning}${projectCount} project${projectCount === 1 ? '' : 's'} · ${partnerCount} partner${partnerCount === 1 ? '' : 's'}`;
+}
+
 function fieldLabel(text, required = false) {
   return `${escapeHtml(text)}${
     required ? '<span class="required-mark" aria-hidden="true">*</span>' : ''
@@ -1201,17 +1216,16 @@ function renderPortfolio() {
 
   const cards = companies
     .map((company) => {
-      const projectCount = getVisibleProjectsForCompany(company.id).length;
       const investedTotal = companyInvestedTotal(company.id, displayMode);
 
       return `
         <article class="card company-card clickable" style="${companyColorStyle(company.colorIndex)}" data-company-id="${escapeHtml(company.id)}">
           <div class="card-row">
             <div class="company-card-heading">
-              <span class="company-swatch" aria-hidden="true"></span>
-              <div>
+              <span class="company-partner-icon" aria-hidden="true">${companyPartnerIcon(company.partnerCount)}</span>
+              <div class="company-card-text">
                 <h2 class="card-title">${escapeHtml(company.name)}</h2>
-                <p class="card-meta">${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</p>
+                <p class="card-meta">${companyProjectMetaMarkup(company.id, company.partnerCount)}</p>
               </div>
             </div>
             <div class="card-amount">${escapeHtml(formatUsdCompact(investedTotal))}</div>
@@ -1239,7 +1253,6 @@ function renderCompanyDetail(companyId) {
   }
 
   const projects = getVisibleProjectsForCompany(companyId);
-  const projectCount = projects.length;
   const investedTotal = companyInvestedTotal(companyId, getAmountDisplayMode());
 
   updateChrome({
@@ -1268,10 +1281,10 @@ function renderCompanyDetail(companyId) {
     <section class="card company-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">
       <div class="card-row">
         <div class="company-card-heading">
-          <span class="company-swatch" aria-hidden="true"></span>
-          <div>
+          <span class="company-partner-icon" aria-hidden="true">${companyPartnerIcon(company.partnerCount)}</span>
+          <div class="company-card-text">
             <h2 class="card-title">${escapeHtml(company.name)}</h2>
-            <p class="card-meta">${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</p>
+            <p class="card-meta">${companyProjectMetaMarkup(companyId, company.partnerCount)}</p>
             ${companyDocLink ? `<p class="card-meta">${companyDocLink}</p>` : ''}
           </div>
         </div>
@@ -2645,6 +2658,13 @@ function renderSettings() {
       <p class="field-hint">My share divides each company total by its number of partners.</p>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
+      <h2 class="section-title">Appearance</h2>
+      <div class="theme-options">
+        <button type="button" class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">Light</button>
+        <button type="button" class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
+      </div>
+    </section>
+    <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Security</h2>
       <p class="field-hint">${hasPin() ? 'Manage your app unlock PIN.' : `Set a ${PIN_LENGTH}-digit PIN to protect the app.`}</p>
       ${
@@ -2663,13 +2683,6 @@ function renderSettings() {
       </div>
       `
       }
-    </section>
-    <section class="card settings-group" style="margin-top: 8px;">
-      <h2 class="section-title">Appearance</h2>
-      <div class="theme-options">
-        <button type="button" class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">Light</button>
-        <button type="button" class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
-      </div>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Help</h2>

@@ -319,21 +319,25 @@ body.fab-visible {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
 }
 
-.company-swatch {
+.company-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.company-partner-icon {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
-  margin-top: 4px;
-  border-radius: 50%;
-  background: var(--company-accent, var(--primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--company-accent, var(--primary)) 25%, transparent);
+  width: 1.25rem;
+  margin-top: 2px;
+  font-size: 1.1rem;
+  line-height: 1;
+  text-align: center;
 }
 
-[data-theme='dark'] .company-swatch {
-  background: var(--company-accent-dark, var(--company-accent));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--company-accent-dark, var(--company-accent)) 35%, transparent);
+.company-no-projects-icon {
+  color: var(--warning);
 }
 
 .card.clickable {

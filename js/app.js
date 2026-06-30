@@ -2462,44 +2462,52 @@ function getProjectReportGainLoss(project, metrics) {
   return metrics.expectedReturn;
 }
 
+function projectHasReportAmounts(investment, gainLoss) {
+  if (Number(investment) > 0) {
+    return true;
+  }
+
+  return gainLoss !== null && gainLoss !== undefined && !Number.isNaN(Number(gainLoss));
+}
+
 function buildPortfolioReport(displayMode = getAmountDisplayMode()) {
   const companies = [...data.companies].sort((a, b) => a.name.localeCompare(b.name));
   const grand = { investment: 0, gainLoss: 0, trackGain: false };
   const sections = [];
 
   companies.forEach((company) => {
-    const allProjects = getProjectsForCompany(data, company.id);
     const projects = [...getVisibleProjectsForCompany(company.id)].sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-
-    if (allProjects.length === 0) {
-      sections.push({
-        company,
-        rows: [],
-        subtotal: { investment: 0, gainLoss: 0, trackGain: false },
-      });
-      return;
-    }
 
     if (projects.length === 0) {
       return;
     }
 
     const subtotal = { investment: 0, gainLoss: 0, trackGain: false };
-    const rows = projects.map((project) => {
-      const metrics = getProjectMetrics(project);
-      const investment = getDisplayAmount(
-        getProjectInvestmentAmount(project),
-        company.partnerCount,
-        displayMode,
-      );
-      const rawGain = getProjectReportGainLoss(project, metrics);
-      const gainLoss =
-        rawGain === null || rawGain === undefined
-          ? null
-          : getDisplayAmount(rawGain, company.partnerCount, displayMode);
+    const rows = projects
+      .map((project) => {
+        const metrics = getProjectMetrics(project);
+        const investment = getDisplayAmount(
+          getProjectInvestmentAmount(project),
+          company.partnerCount,
+          displayMode,
+        );
+        const rawGain = getProjectReportGainLoss(project, metrics);
+        const gainLoss =
+          rawGain === null || rawGain === undefined
+            ? null
+            : getDisplayAmount(rawGain, company.partnerCount, displayMode);
 
+        return { project, metrics, investment, gainLoss };
+      })
+      .filter(({ investment, gainLoss }) => projectHasReportAmounts(investment, gainLoss));
+
+    if (rows.length === 0) {
+      return;
+    }
+
+    rows.forEach(({ investment, gainLoss }) => {
       subtotal.investment += investment;
       grand.investment += investment;
 
@@ -2509,8 +2517,6 @@ function buildPortfolioReport(displayMode = getAmountDisplayMode()) {
         grand.gainLoss += gainLoss;
         grand.trackGain = true;
       }
-
-      return { project, metrics, investment, gainLoss };
     });
 
     sections.push({ company, rows, subtotal });
@@ -2546,12 +2552,18 @@ function formatReportMoney(value) {
     return '—';
   }
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  if (amount === 0) {
+    return '—';
+  }
+
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+
+  if (abs >= 100000) {
+    return `${sign}$${(abs / 1000).toFixed(2)}k`;
+  }
+
+  return `${sign}$${Math.round(abs)}`;
 }
 
 function formatReportGainLoss(value) {

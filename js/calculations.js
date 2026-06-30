@@ -85,6 +85,10 @@ export function formatUsdCompact(value) {
   }).format(amount);
 }
 
+export function getProjectInvestmentAmount(project) {
+  return Number(project.amount) || 0;
+}
+
 export function getDisplayAmount(amount, partnerCount, displayMode) {
   const value = Number(amount || 0);
 
@@ -110,10 +114,22 @@ export function getProjectFilterLabel(filter) {
   }
 
   if (filter === PROJECT_FILTER.PAST) {
-    return 'Show Past only';
+    return 'Show Past';
   }
 
   return 'Show Both';
+}
+
+export function getCompanyProjectsSectionTitle(filter) {
+  if (filter === PROJECT_FILTER.ACTIVE) {
+    return 'Active Projects';
+  }
+
+  if (filter === PROJECT_FILTER.PAST) {
+    return 'Past Projects';
+  }
+
+  return 'All Projects';
 }
 
 export function formatDate(isoDate) {

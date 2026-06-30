@@ -340,6 +340,71 @@ body.fab-visible {
   color: var(--warning);
 }
 
+.company-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.company-detail-line {
+  margin: 0;
+  min-width: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.company-detail-name {
+  font-weight: 700;
+}
+
+.company-detail-meta {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.company-detail-doc {
+  margin: 8px 0 0;
+}
+
+.company-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.company-detail-stat {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.company-detail-stat-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.company-detail-stat-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.company-detail-stat-value.gain {
+  color: var(--success);
+}
+
+.company-detail-stat-value.loss {
+  color: var(--danger);
+}
+
 .card.clickable {
   cursor: pointer;
 }
@@ -490,6 +555,14 @@ body.fab-visible {
   color: var(--text);
   font-size: 1rem;
   font-weight: 700;
+}
+
+.card-amount.gain {
+  color: var(--success);
+}
+
+.card-amount.loss {
+  color: var(--danger);
 }
 
 .card-countdown {

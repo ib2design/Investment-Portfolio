@@ -36,6 +36,8 @@ import {
   formatUsdCompact,
   getAmountDisplayLabel,
   getProjectFilterLabel,
+  getCompanyProjectsSectionTitle,
+  getProjectInvestmentAmount,
   getDisplayAmount,
   getProjectTypeIcon,
   getProjectTypeLabel,
@@ -1040,17 +1042,85 @@ function getAttentionProjects() {
     });
 }
 
-function companyInvestedTotal(companyId, displayMode = getAmountDisplayMode()) {
+function companyTotalInvested(companyId, displayMode = getAmountDisplayMode()) {
   const company = getCompany(data, companyId);
 
   if (!company) {
     return 0;
   }
 
-  return getVisibleProjectsForCompany(companyId).reduce(
-    (sum, project) => sum + getDisplayAmount(project.amount, company.partnerCount, displayMode),
+  return getProjectsForCompany(data, companyId).reduce(
+    (sum, project) =>
+      sum + getDisplayAmount(getProjectInvestmentAmount(project), company.partnerCount, displayMode),
     0,
   );
+}
+
+function getCompanyDetailTotals(companyId, displayMode = getAmountDisplayMode()) {
+  const company = getCompany(data, companyId);
+
+  if (!company) {
+    return { invested: 0, activeInvested: 0, realized: 0, expected: 0 };
+  }
+
+  const totals = { invested: 0, activeInvested: 0, realized: 0, expected: 0 };
+
+  getProjectsForCompany(data, companyId).forEach((project) => {
+    const metrics = getProjectMetrics(project);
+    const share = (amount) => getDisplayAmount(amount, company.partnerCount, displayMode);
+    const investment = share(getProjectInvestmentAmount(project));
+
+    totals.invested += investment;
+
+    if (!isProjectClosed(project)) {
+      totals.activeInvested += investment;
+    }
+
+    if (isProjectClosed(project)) {
+      const netGainLoss = getProjectOutcome(project).actualReturn;
+
+      if (!Number.isNaN(Number(netGainLoss))) {
+        totals.realized += share(netGainLoss);
+      }
+
+      return;
+    }
+
+    const expectedGainLoss = getProjectReportGainLoss(project, metrics);
+
+    if (expectedGainLoss !== null && expectedGainLoss !== undefined && !Number.isNaN(Number(expectedGainLoss))) {
+      totals.expected += share(expectedGainLoss);
+    }
+  });
+
+  return totals;
+}
+
+function companyDetailStatsMarkup(companyId) {
+  const { invested, activeInvested, realized, expected } = getCompanyDetailTotals(companyId);
+  const realizedClass = realized > 0 ? 'gain' : realized < 0 ? 'loss' : '';
+  const expectedClass = expected > 0 ? 'gain' : expected < 0 ? 'loss' : '';
+
+  return `
+    <div class="company-detail-stats">
+      <div class="company-detail-stat">
+        <span class="company-detail-stat-label">Total Invested</span>
+        <span class="company-detail-stat-value">${escapeHtml(formatUsdCompact(invested))}</span>
+      </div>
+      <div class="company-detail-stat">
+        <span class="company-detail-stat-label">Active Investment</span>
+        <span class="company-detail-stat-value">${escapeHtml(formatUsdCompact(activeInvested))}</span>
+      </div>
+      <div class="company-detail-stat">
+        <span class="company-detail-stat-label">Net Gain / Loss</span>
+        <span class="company-detail-stat-value ${realizedClass}">${escapeHtml(formatReportMoney(realized))}</span>
+      </div>
+      <div class="company-detail-stat">
+        <span class="company-detail-stat-label">Expected Return</span>
+        <span class="company-detail-stat-value ${expectedClass}">${escapeHtml(formatReportMoney(expected))}</span>
+      </div>
+    </div>
+  `;
 }
 
 function projectStatusBadge(displayStatus) {
@@ -1082,15 +1152,35 @@ function projectMaturityDate(project, displayStatus) {
   return `<p class="card-maturity-date${overdueClass}">${escapeHtml(formatDate(getProjectEndDate(project)))}</p>`;
 }
 
+function getProjectCardAmountDisplay(project) {
+  const company = getCompany(data, project.companyId);
+  const partnerCount = company?.partnerCount ?? 1;
+  const displayMode = getAmountDisplayMode();
+
+  if (isProjectClosed(project)) {
+    const netGainLoss = getDisplayAmount(
+      getProjectOutcome(project).actualReturn,
+      partnerCount,
+      displayMode,
+    );
+    const valueClass = netGainLoss > 0 ? 'gain' : netGainLoss < 0 ? 'loss' : '';
+
+    return {
+      text: formatReportMoney(netGainLoss),
+      className: valueClass,
+    };
+  }
+
+  return {
+    text: formatDisplayUsdCompact(project.amount, partnerCount, displayMode),
+    className: '',
+  };
+}
+
 function renderProjectSummaryCard(project, metrics, options = {}) {
   const { extraMeta = '', showAmount = true, dataAttrs = '' } = options;
   const badge = projectStatusBadge(metrics.displayStatus);
-  const company = getCompany(data, project.companyId);
-  const displayAmount = formatDisplayUsdCompact(
-    project.amount,
-    company?.partnerCount ?? 1,
-    getAmountDisplayMode(),
-  );
+  const amountDisplay = getProjectCardAmountDisplay(project);
   const isRealEstate = isRealEstateProject(project.type);
 
   if (isRealEstate) {
@@ -1101,7 +1191,7 @@ function renderProjectSummaryCard(project, metrics, options = {}) {
             <span class="project-type-icon" aria-hidden="true">${getProjectTypeIcon(project.type)}</span>
             <h2 class="card-title project-card-compact-title">${escapeHtml(project.name)}</h2>
             ${badge}
-            ${showAmount ? `<p class="card-amount">${escapeHtml(displayAmount)}</p>` : ''}
+            ${showAmount ? `<p class="card-amount ${amountDisplay.className}">${escapeHtml(amountDisplay.text)}</p>` : ''}
           </div>
           ${extraMeta ? `<div class="project-card-compact-meta">${extraMeta}</div>` : ''}
         </div>
@@ -1115,7 +1205,7 @@ function renderProjectSummaryCard(project, metrics, options = {}) {
       <div class="project-summary-card-body">
         <div class="card-row project-card-top">
           ${projectCardMain(project, extraMeta)}
-          ${showAmount ? `<p class="card-amount">${escapeHtml(displayAmount)}</p>` : ''}
+          ${showAmount ? `<p class="card-amount ${amountDisplay.className}">${escapeHtml(amountDisplay.text)}</p>` : ''}
         </div>
         <div class="project-card-main project-card-bottom">
           <span class="project-type-icon project-type-icon-spacer" aria-hidden="true"></span>
@@ -1247,7 +1337,7 @@ function renderPortfolio() {
   if (companies.length === 0) {
     appRoot.innerHTML = `
       <section class="empty-state">
-        <p>No companies match the current project filter. Change Show Both, Show Active, or Show Past only in Settings.</p>
+        <p>No companies match the current project filter. Change Show Both, Show Active, or Show Past in Settings.</p>
       </section>
     `;
     return;
@@ -1255,7 +1345,7 @@ function renderPortfolio() {
 
   const cards = companies
     .map((company) => {
-      const investedTotal = companyInvestedTotal(company.id, displayMode);
+      const investedTotal = companyTotalInvested(company.id, displayMode);
 
       return `
         <article class="card company-card clickable" style="${companyColorStyle(company.colorIndex)}" data-company-id="${escapeHtml(company.id)}">
@@ -1292,7 +1382,11 @@ function renderCompanyDetail(companyId) {
   }
 
   const projects = getVisibleProjectsForCompany(companyId);
-  const investedTotal = companyInvestedTotal(companyId, getAmountDisplayMode());
+  const projectCount = projects.length;
+  const noProjects = getProjectsForCompany(data, companyId).length === 0;
+  const noProjectsWarning = noProjects
+    ? '<span class="company-no-projects-icon" aria-hidden="true">\u{26A0}</span> '
+    : '';
 
   updateChrome({
     showBack: true,
@@ -1317,20 +1411,17 @@ function renderCompanyDetail(companyId) {
   const companyDocLink = documentationLinkHtml(company.documentationUrl);
 
   appRoot.innerHTML = `
-    <section class="card company-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">
-      <div class="card-row">
-        <div class="company-card-heading">
-          <span class="company-partner-icon" aria-hidden="true">${companyPartnerIcon(company.partnerCount)}</span>
-          <div class="company-card-text">
-            <h2 class="card-title">${escapeHtml(company.name)}</h2>
-            <p class="card-meta">${companyProjectMetaMarkup(companyId, company.partnerCount)}</p>
-            ${companyDocLink ? `<p class="card-meta">${companyDocLink}</p>` : ''}
-          </div>
-        </div>
-        <div class="card-amount">${escapeHtml(formatUsdCompact(investedTotal))}</div>
+    <section class="card company-card company-detail-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">
+      <div class="company-detail-header">
+        <span class="company-partner-icon" aria-hidden="true">${companyPartnerIcon(company.partnerCount)}</span>
+        <p class="company-detail-line">
+          ${noProjectsWarning}<span class="company-detail-name">${escapeHtml(company.name)}</span><span class="company-detail-meta"> · ${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</span>
+        </p>
       </div>
+      ${companyDetailStatsMarkup(companyId)}
+      ${companyDocLink ? `<p class="card-meta company-detail-doc">${companyDocLink}</p>` : ''}
     </section>
-    <h2 class="section-title">Projects</h2>
+    <h2 class="section-title">${escapeHtml(getCompanyProjectsSectionTitle(getProjectFilter()))}</h2>
     <section class="card-list">${projectCards}</section>
   `;
 
@@ -2398,7 +2489,11 @@ function buildPortfolioReport(displayMode = getAmountDisplayMode()) {
     const subtotal = { investment: 0, gainLoss: 0, trackGain: false };
     const rows = projects.map((project) => {
       const metrics = getProjectMetrics(project);
-      const investment = getDisplayAmount(project.amount, company.partnerCount, displayMode);
+      const investment = getDisplayAmount(
+        getProjectInvestmentAmount(project),
+        company.partnerCount,
+        displayMode,
+      );
       const rawGain = getProjectReportGainLoss(project, metrics);
       const gainLoss =
         rawGain === null || rawGain === undefined
@@ -2451,11 +2546,12 @@ function formatReportMoney(value) {
     return '—';
   }
 
-  if (amount < 0) {
-    return `-${formatUsdCompact(Math.abs(amount))}`;
-  }
-
-  return formatUsdCompact(amount);
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function formatReportGainLoss(value) {
@@ -2611,7 +2707,7 @@ function renderReports() {
   if (sections.length === 0) {
     const emptyMessage =
       data.projects.length > 0
-        ? 'No projects match the current project filter. Change Show Both, Show Active, or Show Past only in Settings.'
+        ? 'No projects match the current project filter. Change Show Both, Show Active, or Show Past in Settings.'
         : 'No projects to report yet. Add companies and projects first.';
 
     appRoot.innerHTML = `
@@ -2684,7 +2780,7 @@ function renderSettings() {
       <div class="theme-options theme-options--three">
         <button type="button" class="theme-option ${projectFilter === PROJECT_FILTER.ALL ? 'active' : ''}" data-project-filter="${PROJECT_FILTER.ALL}">Show Both</button>
         <button type="button" class="theme-option ${projectFilter === PROJECT_FILTER.ACTIVE ? 'active' : ''}" data-project-filter="${PROJECT_FILTER.ACTIVE}">Show Active</button>
-        <button type="button" class="theme-option ${projectFilter === PROJECT_FILTER.PAST ? 'active' : ''}" data-project-filter="${PROJECT_FILTER.PAST}">Show Past only</button>
+        <button type="button" class="theme-option ${projectFilter === PROJECT_FILTER.PAST ? 'active' : ''}" data-project-filter="${PROJECT_FILTER.PAST}">Show Past</button>
       </div>
       <p class="field-hint">Active includes ongoing and matured projects. Past is sold, closed loss, and partial recovered.</p>
     </section>

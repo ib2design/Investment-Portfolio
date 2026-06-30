@@ -259,6 +259,7 @@ export function saveProjectFilter(filter) {
       ? filter
       : PROJECT_FILTER.ALL;
   localStorage.setItem(PROJECT_FILTER_KEY, resolved);
+  localStorage.removeItem(ACTIVE_PROJECTS_ONLY_KEY);
 }
 
 export function wipePortfolioAndPin() {

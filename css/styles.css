@@ -927,6 +927,83 @@ body.fab-visible {
   white-space: normal;
 }
 
+.btn-help {
+  background: var(--app-name-orange);
+  color: #ffffff;
+  text-align: center;
+}
+
+.btn-help:active {
+  opacity: 0.85;
+}
+
+.help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.help-modal.hidden {
+  display: none;
+}
+
+body.help-modal-open {
+  overflow: hidden;
+}
+
+.help-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(15, 32, 43, 0.45);
+  cursor: pointer;
+}
+
+.help-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  max-height: min(80dvh, 560px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.help-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.help-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.help-modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.help-modal-body {
+  overflow-y: auto;
+  text-align: left;
+}
+
 .fab {
   position: fixed;
   z-index: 110;

@@ -82,6 +82,8 @@ const headerAction = document.getElementById('header-action');
 const bottomNav = document.getElementById('bottom-nav');
 const fabButton = document.getElementById('fab-button');
 const pinLock = document.getElementById('pin-lock');
+const helpModal = document.getElementById('help-modal');
+const helpModalBody = document.getElementById('help-modal-body');
 
 let data = loadData();
 let pinUnlocked = false;
@@ -114,6 +116,43 @@ function companyProjectMetaMarkup(companyId, partnerCount) {
     : '';
 
   return `${warning}${projectCount} project${projectCount === 1 ? '' : 's'} · ${partnerCount} partner${partnerCount === 1 ? '' : 's'}`;
+}
+
+function helpContentMarkup() {
+  return '<div class="settings-help" id="settings-help"></div>';
+}
+
+function setHelpModalVisible(visible) {
+  if (!helpModal) {
+    return;
+  }
+
+  helpModal.classList.toggle('hidden', !visible);
+  helpModal.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  document.body.classList.toggle('help-modal-open', visible);
+}
+
+function openHelpModal() {
+  if (!helpModalBody) {
+    return;
+  }
+
+  helpModalBody.innerHTML = helpContentMarkup();
+  setHelpModalVisible(true);
+}
+
+function closeHelpModal() {
+  setHelpModalVisible(false);
+}
+
+function bindHelpModal() {
+  if (!helpModal) {
+    return;
+  }
+
+  helpModal.querySelectorAll('[data-help-close]').forEach((element) => {
+    element.addEventListener('click', closeHelpModal);
+  });
 }
 
 function fieldLabel(text, required = false) {
@@ -2655,7 +2694,7 @@ function renderSettings() {
         <button type="button" class="theme-option ${displayMode === AMOUNT_DISPLAY.GROUP ? 'active' : ''}" data-display-mode="${AMOUNT_DISPLAY.GROUP}">Group totals</button>
         <button type="button" class="theme-option ${displayMode === AMOUNT_DISPLAY.MY_SHARE ? 'active' : ''}" data-display-mode="${AMOUNT_DISPLAY.MY_SHARE}">My share</button>
       </div>
-      <p class="field-hint">My share divides each company total by its number of partners.</p>
+      <p class="field-hint">My share = company total ÷ partners.</p>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Appearance</h2>
@@ -2685,8 +2724,7 @@ function renderSettings() {
       }
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
-      <h2 class="section-title">Help</h2>
-      <div class="settings-help" id="settings-help"></div>
+      <button type="button" class="btn btn-help btn-block" id="settings-help-button">Help</button>
     </section>
   `;
 
@@ -2705,6 +2743,8 @@ function renderSettings() {
   appRoot.querySelector('#settings-erase-data')?.addEventListener('click', () => {
     navigate('erase-data');
   });
+
+  appRoot.querySelector('#settings-help-button')?.addEventListener('click', openHelpModal);
 
   appRoot.querySelectorAll('[data-project-filter]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -2832,14 +2872,22 @@ function bindGlobalEvents() {
 
   bottomNav.querySelectorAll('.nav-item').forEach((button) => {
     button.addEventListener('click', () => {
+      closeHelpModal();
       navigate(button.dataset.nav);
     });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && helpModal && !helpModal.classList.contains('hidden')) {
+      closeHelpModal();
+    }
   });
 }
 
 applyInitialTheme();
 updateAmountModeIndicator();
 bindGlobalEvents();
+bindHelpModal();
 
 if (hasPin()) {
   renderPinLock();

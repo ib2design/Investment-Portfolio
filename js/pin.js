@@ -65,3 +65,7 @@ export async function verifyPin(pin) {
 export async function savePin(pin) {
   localStorage.setItem(PIN_HASH_KEY, await hashPin(pin));
 }
+
+export function removePin() {
+  localStorage.removeItem(PIN_HASH_KEY);
+}

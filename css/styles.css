@@ -903,6 +903,26 @@ body.fab-visible {
   background: var(--surface-muted);
 }
 
+.security-options {
+  display: grid;
+  gap: 6px;
+}
+
+.security-options--two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.security-options--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.security-action {
+  padding: 10px 4px;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  white-space: normal;
+}
+
 .fab {
   position: fixed;
   z-index: 110;
@@ -1284,25 +1304,6 @@ body.pin-locked .fab {
 
 .erase-data-cancel {
   touch-action: manipulation;
-}
-
-.settings-erase-data-link {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--danger);
-  font-size: 0.82rem;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-align: center;
-}
-
-.settings-erase-data-link:active {
-  opacity: 0.75;
 }
 
 @media (min-width: 720px) {

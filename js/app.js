@@ -53,7 +53,7 @@ import {
   bindPinInput,
   getTodayIsoDate,
 } from './formInputs.js';
-import { hasPin, isValidPin, verifyPin, savePin } from './pin.js';
+import { hasPin, isValidPin, verifyPin, savePin, removePin } from './pin.js';
 import {
   createId,
   deleteCompany,
@@ -540,6 +540,58 @@ function renderPinChange() {
       }
 
       await savePin(newPin);
+      pinUnlocked = true;
+      navigate('settings');
+    });
+  });
+}
+
+function renderPinRemove() {
+  if (!hasPin()) {
+    navigate('settings');
+    return;
+  }
+
+  updateChrome({
+    subtitle: 'Remove PIN',
+    showBack: true,
+    showFab: false,
+  });
+
+  appRoot.innerHTML = `
+    <form class="form pin-form project-form" id="pin-remove-form" novalidate>
+      <p class="field-hint">Enter your current PIN to turn off app protection.</p>
+      ${pinFieldMarkup('currentPin', 'Current PIN', 'current-password')}
+      <p class="field-error hidden" data-form-error="pin-remove"></p>
+      <button type="submit" class="btn btn-danger btn-block">Remove PIN</button>
+    </form>
+  `;
+
+  const form = appRoot.querySelector('#pin-remove-form');
+
+  if (!form) {
+    return;
+  }
+
+  bindPinForm(form);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    void runPinFormAction(form, async () => {
+      const currentPin = String(new FormData(form).get('currentPin') ?? '');
+
+      if (!isValidPin(currentPin)) {
+        showPinFormError(form, `PIN must be ${PIN_LENGTH} digits.`);
+        return;
+      }
+
+      if (!(await verifyPin(currentPin))) {
+        showPinFormError(form, 'Current PIN is incorrect.');
+        return;
+      }
+
+      removePin();
       pinUnlocked = true;
       navigate('settings');
     });
@@ -2594,14 +2646,22 @@ function renderSettings() {
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Security</h2>
-      <p class="field-hint">${hasPin() ? 'Change your app unlock PIN.' : `Set a ${PIN_LENGTH}-digit PIN to protect the app.`}</p>
-      <button type="button" class="btn btn-secondary btn-block" id="pin-settings-button">
-        ${hasPin() ? 'Change PIN' : 'Set up PIN'}
-      </button>
+      <p class="field-hint">${hasPin() ? 'Manage your app unlock PIN.' : `Set a ${PIN_LENGTH}-digit PIN to protect the app.`}</p>
       ${
         hasPin()
-          ? '<button type="button" class="settings-erase-data-link" id="settings-erase-data">Erase all data</button>'
-          : ''
+          ? `
+      <div class="security-options security-options--three">
+        <button type="button" class="btn btn-secondary security-action" id="pin-change-button">Change PIN</button>
+        <button type="button" class="btn btn-secondary security-action" id="settings-remove-pin">Remove PIN</button>
+        <button type="button" class="btn btn-danger security-action" id="settings-erase-data">Erase All Data</button>
+      </div>
+      `
+          : `
+      <div class="security-options security-options--two">
+        <button type="button" class="btn btn-secondary security-action" id="pin-setup-button">Create a Pin</button>
+        <button type="button" class="btn btn-danger security-action" id="settings-erase-data">Erase All Data</button>
+      </div>
+      `
       }
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
@@ -2611,10 +2671,22 @@ function renderSettings() {
         <button type="button" class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
       </div>
     </section>
+    <section class="card settings-group" style="margin-top: 8px;">
+      <h2 class="section-title">Help</h2>
+      <div class="settings-help" id="settings-help"></div>
+    </section>
   `;
 
-  appRoot.querySelector('#pin-settings-button')?.addEventListener('click', () => {
-    navigate(hasPin() ? 'pin-change' : 'pin-setup');
+  appRoot.querySelector('#pin-setup-button')?.addEventListener('click', () => {
+    navigate('pin-setup');
+  });
+
+  appRoot.querySelector('#pin-change-button')?.addEventListener('click', () => {
+    navigate('pin-change');
+  });
+
+  appRoot.querySelector('#settings-remove-pin')?.addEventListener('click', () => {
+    navigate('pin-remove');
   });
 
   appRoot.querySelector('#settings-erase-data')?.addEventListener('click', () => {
@@ -2680,6 +2752,9 @@ function render() {
     case 'pin-change':
       renderPinChange();
       break;
+    case 'pin-remove':
+      renderPinRemove();
+      break;
     case 'erase-data':
       renderEraseData();
       break;
@@ -2711,6 +2786,7 @@ function goBack() {
       break;
     case 'pin-setup':
     case 'pin-change':
+    case 'pin-remove':
     case 'erase-data':
       navigate('settings');
       break;

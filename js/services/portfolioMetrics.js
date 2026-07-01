@@ -106,19 +106,8 @@ export function getAttentionProjects() {
     });
 }
 
-export function companyTotalInvested(companyId, displayMode = getAmountDisplayMode()) {
-  const data = getData();
-  const company = getCompany(data, companyId);
-
-  if (!company) {
-    return 0;
-  }
-
-  return getProjectsForCompany(data, companyId).reduce(
-    (sum, project) =>
-      sum + getDisplayAmount(getProjectInvestmentAmount(project), company.partnerCount, displayMode),
-    0,
-  );
+export function companyActiveInvested(companyId, displayMode = getAmountDisplayMode()) {
+  return getCompanyDetailTotals(companyId, displayMode).activeInvested;
 }
 
 export function getProjectReportGainLoss(project, metrics) {

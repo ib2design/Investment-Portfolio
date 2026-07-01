@@ -6,7 +6,7 @@ import { companyColorStyle } from '../colors.js';
 import { formatUsdCompact } from '../calculations.js';
 import { getAmountDisplayMode } from '../storage.js';
 import {
-  companyTotalInvested,
+  companyActiveInvested,
   companyPartnerIcon,
   companyProjectMetaMarkup,
 } from '../services/portfolioMetrics.js';
@@ -47,7 +47,7 @@ export function renderPortfolio() {
 
   const cards = companies
     .map((company) => {
-      const investedTotal = companyTotalInvested(company.id, displayMode);
+      const activeInvested = companyActiveInvested(company.id, displayMode);
 
       return `
         <article class="card company-card clickable" style="${companyColorStyle(company.colorIndex)}" data-company-id="${escapeHtml(company.id)}">
@@ -59,7 +59,10 @@ export function renderPortfolio() {
                 <p class="card-meta">${companyProjectMetaMarkup(company.id, company.partnerCount)}</p>
               </div>
             </div>
-            <div class="card-amount">${escapeHtml(formatUsdCompact(investedTotal))}</div>
+            <div class="company-card-amount">
+              <span class="company-card-amount-label">Active</span>
+              <p class="card-amount">${escapeHtml(formatUsdCompact(activeInvested))}</p>
+            </div>
           </div>
         </article>
       `;

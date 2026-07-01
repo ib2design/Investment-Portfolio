@@ -48,6 +48,7 @@ export const SHARE_PIN_LENGTH = 4;
 
 export const SHARE_FORMAT = 'investment-portfolio-share';
 export const SHARE_VERSION = 1;
+export const SHARE_FILE_EXTENSION = '.ipshare';
 
 export const ERASE_DATA_CONFIRM_WORD = 'delete';
 

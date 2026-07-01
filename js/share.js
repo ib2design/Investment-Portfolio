@@ -1,15 +1,11 @@
-import { SCHEMA_VERSION, SHARE_PIN_LENGTH } from './constants.js';
+import { SCHEMA_VERSION, SHARE_FILE_EXTENSION, SHARE_PIN_LENGTH } from './constants.js';
 import {
   canUseBackupEncryption,
   encryptSharePayload,
   getEncryptionUnavailableMessage,
 } from './backup.js';
 
-const SHARE_FILE_MIME_TYPES = [
-  'application/octet-stream',
-  'text/plain',
-  'application/json',
-];
+const SHARE_FILE_MIME = 'application/octet-stream';
 
 function isValidPinDigits(pin, length) {
   return new RegExp(`^\\d{${length}}$`).test(pin);
@@ -44,35 +40,15 @@ export function getProjectShareFilename(companyName, projectName) {
   const companyPart = sanitizeFilenamePart(companyName) || 'Company';
   const projectPart = sanitizeFilenamePart(projectName) || 'Project';
 
-  return `${companyPart}_${projectPart}_${date}.json`;
+  return `${companyPart}_${projectPart}_${date}${SHARE_FILE_EXTENSION}`;
 }
 
 export function isValidSharePin(pin) {
   return isValidPinDigits(pin, SHARE_PIN_LENGTH);
 }
 
-function canShareFiles(files) {
-  if (!navigator.share) {
-    return false;
-  }
-
-  if (!navigator.canShare) {
-    return true;
-  }
-
-  return navigator.canShare({ files });
-}
-
 function buildShareableFile(blob, filename) {
-  for (const type of SHARE_FILE_MIME_TYPES) {
-    const file = new File([blob], filename, { type });
-
-    if (canShareFiles([file])) {
-      return file;
-    }
-  }
-
-  return new File([blob], filename, { type: 'application/octet-stream' });
+  return new File([blob], filename, { type: SHARE_FILE_MIME });
 }
 
 function downloadShareFile(file) {
@@ -87,19 +63,19 @@ function downloadShareFile(file) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function invokeNavigatorShare(file, { title, text }) {
+function invokeNavigatorShare(file) {
   if (!navigator.share) {
     throw new Error('Sharing is not supported here. Save the file instead.');
   }
 
   const files = [file];
-  const shareData = { files, title, text };
 
   if (navigator.canShare && !navigator.canShare({ files })) {
     throw new Error('This browser cannot share this file type.');
   }
 
-  return navigator.share(shareData);
+  // Files only — title/text cause WhatsApp on iOS to paste JSON as a message.
+  return navigator.share({ files });
 }
 
 export async function createEncryptedShareFile({ company, project, sharePin }) {
@@ -114,18 +90,15 @@ export async function createEncryptedShareFile({ company, project, sharePin }) {
   const payload = buildProjectSharePayload(company, project);
   const encryptedFile = await encryptSharePayload(payload, sharePin);
   const filename = getProjectShareFilename(company.name, project.name);
-  const json = JSON.stringify(encryptedFile, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
+  const json = JSON.stringify(encryptedFile);
+  const blob = new Blob([json], { type: SHARE_FILE_MIME });
 
   return buildShareableFile(blob, filename);
 }
 
-export function sharePreparedFile(file, { companyName, projectName }) {
-  const title = `${companyName} — ${projectName}`;
-  const text = 'Encrypted Investment Portfolio project. Import in the app using the Share PIN sent separately.';
-
+export function sharePreparedFile(file) {
   try {
-    const sharePromise = invokeNavigatorShare(file, { title, text });
+    const sharePromise = invokeNavigatorShare(file);
 
     return sharePromise
       .then(() => ({ cancelled: false, usedDownloadFallback: false }))
@@ -145,8 +118,5 @@ export function sharePreparedFile(file, { companyName, projectName }) {
 
 export async function shareEncryptedProject({ company, project, sharePin }) {
   const file = await createEncryptedShareFile({ company, project, sharePin });
-  return sharePreparedFile(file, {
-    companyName: company.name,
-    projectName: project.name,
-  });
+  return sharePreparedFile(file);
 }

@@ -29,7 +29,7 @@ function renderShareForm(companyName, projectName) {
     <p class="share-instructions">
       Share <strong>${escapeHtml(projectName)}</strong> from <strong>${escapeHtml(companyName)}</strong> as an encrypted file.
       Choose a ${SHARE_PIN_LENGTH}-digit Share PIN and send it to the recipient separately (text, call, etc.).
-      The file is not saved on this device — only passed through your share app.
+      The file is not saved on this device — only passed through your share app as an attachment.
     </p>
     <form class="form pin-form share-project-form" id="share-project-form" autocomplete="off" novalidate>
       ${sharePinFieldMarkup('sharePinEntry', 'Share PIN', SHARE_PIN_LENGTH)}
@@ -199,15 +199,10 @@ function mountShareForm() {
       return;
     }
 
-    const shareMeta = {
-      companyName: pendingShare.company.name,
-      projectName: pendingShare.project.name,
-    };
-
     const launchShare = (file) => {
       setShareBusy(form, submitButton, true);
 
-      void sharePreparedFile(file, shareMeta)
+      void sharePreparedFile(file)
         .then((result) => handleShareResult(form, submitButton, result))
         .catch((error) => {
           console.error(error);

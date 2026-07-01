@@ -33,6 +33,9 @@ export function renderSettings() {
 
   dom.appRoot.innerHTML = `
     <section class="card settings-group">
+      <button type="button" class="btn btn-help btn-block" id="settings-help-button">Help / FAQ</button>
+    </section>
+    <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Portfolio</h2>
       <div class="theme-options theme-options--three">
         <button type="button" class="theme-option ${projectFilter === PROJECT_FILTER.ALL ? 'active' : ''}" data-project-filter="${PROJECT_FILTER.ALL}">Show Both</button>
@@ -83,9 +86,6 @@ export function renderSettings() {
         <button type="button" class="btn btn-secondary security-action" id="settings-export-backup">Export</button>
         <button type="button" class="btn btn-secondary security-action" id="settings-import-backup">Import</button>
       </div>
-    </section>
-    <section class="card settings-group" style="margin-top: 8px;">
-      <button type="button" class="btn btn-help btn-block" id="settings-help-button">Help</button>
     </section>
   `;
 

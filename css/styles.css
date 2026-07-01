@@ -1037,9 +1037,9 @@ body.fab-visible {
   inset: 0;
   z-index: 210;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
 }
 
 .help-modal.hidden {
@@ -1062,11 +1062,17 @@ body.help-modal-open {
 .help-modal-card {
   position: relative;
   z-index: 1;
-  width: min(400px, 100%);
-  max-height: min(80dvh, 560px);
+  width: 100%;
+  max-width: 720px;
+  max-height: min(88dvh, 720px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: 0;
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 32px rgba(15, 32, 43, 0.12);
 }
 
 .help-modal-header {
@@ -1075,6 +1081,7 @@ body.help-modal-open {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .help-modal-title {
@@ -1095,8 +1102,58 @@ body.help-modal-open {
 }
 
 .help-modal-body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   text-align: left;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-intro {
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-intro:last-of-type {
+  margin-bottom: 2px;
+}
+
+.faq-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.faq-list li + li {
+  margin-top: 6px;
+}
+
+.faq-item {
+  margin: 0;
+}
+
+.faq-question {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.faq-answer {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
 }
 
 .fab {

@@ -1,8 +1,5 @@
 import { dom } from '../context.js';
-
-export function helpContentMarkup() {
-  return '<div class="settings-help" id="settings-help"></div>';
-}
+import { faqContentMarkup } from './faq.js';
 
 export function setHelpModalVisible(visible) {
   if (!dom.helpModal) {
@@ -19,7 +16,7 @@ export function openHelpModal() {
     return;
   }
 
-  dom.helpModalBody.innerHTML = helpContentMarkup();
+  dom.helpModalBody.innerHTML = faqContentMarkup();
   setHelpModalVisible(true);
 }
 

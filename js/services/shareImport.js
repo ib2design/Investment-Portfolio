@@ -5,6 +5,7 @@ import {
   getProjectStatusLabel,
   getProjectTypeLabel,
   isRealEstateProject,
+  isOtherProject,
   resolveProjectStatus,
 } from '../calculations.js';
 import { REMINDER_WINDOW_DAYS } from '../constants.js';
@@ -108,6 +109,7 @@ export function buildShareImportReviewRows(payload) {
   const company = payload.company;
   const displayStatus = resolveProjectStatus(project, REMINDER_WINDOW_DAYS);
   const isRealEstate = isRealEstateProject(project.type);
+  const isOther = isOtherProject(project.type);
   const rows = [
     detailRow('Company', escapeHtml(company.name.trim())),
     detailRow('Partners', escapeHtml(String(company.partnerCount ?? 1))),
@@ -124,6 +126,12 @@ export function buildShareImportReviewRows(payload) {
       detailRow('Estimated value', formatOptionalUsd(project.estimatedValue)),
       detailRow('Sold date', formatOptionalDate(project.soldDate)),
       detailRow('Sold price', formatOptionalUsd(project.soldPrice)),
+    );
+  } else if (isOther) {
+    rows.push(
+      detailRow('Date invested', formatOptionalDate(project.dateInvested)),
+      detailRow('Return amount', formatOptionalUsd(project.amountRecovered)),
+      detailRow('Closed date', formatOptionalDate(project.closedDate)),
     );
   } else {
     rows.push(

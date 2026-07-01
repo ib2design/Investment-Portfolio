@@ -1,5 +1,10 @@
 import { PROJECT_STATUS } from '../constants.js';
-import { isRealEstateProject, isSoldProjectStatus, isClosedProjectStatus } from '../calculations.js';
+import {
+  isRealEstateProject,
+  isOtherProject,
+  isSoldProjectStatus,
+  isClosedProjectStatus,
+} from '../calculations.js';
 import { getTodayIsoDate } from '../formInputs.js';
 import { validateDocumentationUrlField } from '../ui/documentation.js';
 
@@ -57,6 +62,7 @@ export function validateProjectForm(values) {
     documentationUrl,
   } = values;
   const isRealEstate = isRealEstateProject(type);
+  const isOther = isOtherProject(type);
   const isSold = isRealEstate && isSoldProjectStatus(status);
   const interestClosed = !isRealEstate && closed;
 
@@ -94,7 +100,7 @@ export function validateProjectForm(values) {
         errors.estimatedValue = 'Estimated value must be greater than zero.';
       }
     }
-  } else {
+  } else if (!isOther) {
     if (!maturationDate) {
       errors.maturationDate = 'Maturation date is required.';
     } else if (dateInvested && new Date(maturationDate) <= new Date(dateInvested)) {
@@ -119,7 +125,19 @@ export function validateProjectForm(values) {
       errors.closedDate = 'Date closed is required for this status.';
     }
 
-    if (statusRequiresAmountRecovered(status)) {
+    if (isOther && status !== PROJECT_STATUS.CLOSED_LOSS) {
+      if (Number.isNaN(amountRecovered) || amountRecovered < 0) {
+        errors.amountRecovered = 'Return amount must be zero or greater.';
+      } else {
+        const recoveredError = getAmountRecoveredError(status, amount, amountRecovered);
+
+        if (recoveredError) {
+          errors.amountRecovered = recoveredError.replace(/^Amount recovered/, 'Return amount');
+        } else if (status === PROJECT_STATUS.MATURED && amountRecovered <= 0) {
+          errors.amountRecovered = 'Return amount must be greater than zero.';
+        }
+      }
+    } else if (statusRequiresAmountRecovered(status)) {
       const recoveredError = getAmountRecoveredError(status, amount, amountRecovered);
 
       if (recoveredError) {

@@ -344,13 +344,21 @@ export function isRealEstateProject(type) {
   return type === 'real_estate';
 }
 
+export function isOtherProject(type) {
+  return type === 'other';
+}
+
 export function isInterestBasedProject(type) {
-  return !isRealEstateProject(type);
+  return !isRealEstateProject(type) && !isOtherProject(type);
 }
 
 export function getProjectEndDate(project) {
   if (isRealEstateProject(project.type)) {
     return project.loanPayoffDate || null;
+  }
+
+  if (isOtherProject(project.type)) {
+    return null;
   }
 
   return project.maturationDate || null;

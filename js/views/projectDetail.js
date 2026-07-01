@@ -11,6 +11,7 @@ import {
   getProjectTypeLabel,
   isCompletedProject,
   isRealEstateProject,
+  isOtherProject,
   isRealEstateSold,
   isProjectClosed,
 } from '../calculations.js';
@@ -48,6 +49,7 @@ export function renderProjectDetail(projectId) {
   const metrics = getProjectMetrics(project);
   const partnerCount = company?.partnerCount ?? 1;
   const isRealEstate = isRealEstateProject(project.type);
+  const isOther = isOtherProject(project.type);
   const endDate = getProjectEndDate(project);
   const isSold = isRealEstateSold(project);
   const isClosed = isProjectClosed(project);
@@ -74,6 +76,7 @@ export function renderProjectDetail(projectId) {
     : 0;
   const hideExpectedNumbers =
     isRealEstate ||
+    isOther ||
     project.status === PROJECT_STATUS.CLOSED_LOSS ||
     project.status === PROJECT_STATUS.PARTIAL_RECOVERED;
   const isClosedLoss = project.status === PROJECT_STATUS.CLOSED_LOSS;
@@ -97,7 +100,11 @@ export function renderProjectDetail(projectId) {
   const hasLoss = Boolean(outcome?.actualLoss > 0);
   const showExpectedTime = Boolean(!isClosed && project.dateInvested && endDate);
   const showApr = Boolean(
-    !isRealEstate && project.aprPercent !== null && project.aprPercent !== undefined && project.aprType,
+    !isRealEstate &&
+      !isOther &&
+      project.aprPercent !== null &&
+      project.aprPercent !== undefined &&
+      project.aprType,
   );
   const showNetProceeds = Boolean(isRealEstate && isClosed && project.soldPrice !== null && project.soldPrice !== undefined);
 
@@ -147,11 +154,14 @@ export function renderProjectDetail(projectId) {
                 `
               : isPartialRecovered
                 ? `
-                  ${detailRow('Amount Recovered', escapeHtml(formatUsd(outcome.amountRecovered)))}
+                  ${detailRow(`${isOther ? 'Return Amount' : 'Amount Recovered'}`, escapeHtml(formatUsd(outcome.amountRecovered)))}
                   ${detailRow('Total Loss', escapeHtml(formatUsd(outcome.actualLoss)), { valueClass: 'loss' })}
                 `
               : showRecoveredAmounts
-                ? detailRow('Amount Recovered', escapeHtml(formatUsd(outcome.amountRecovered)))
+                ? detailRow(
+                    isOther ? 'Return Amount' : 'Amount Recovered',
+                    escapeHtml(formatUsd(outcome.amountRecovered)),
+                  )
                 : ''
           }
           ${
@@ -159,8 +169,9 @@ export function renderProjectDetail(projectId) {
               ? ''
               : !isRealEstate
                 ? detailRow(
-                    'Actual Return',
+                    isOther ? 'Net Gain / Loss' : 'Actual Return',
                     escapeHtml(formatUsd(outcome.actualReturn)),
+                    hasLoss ? { valueClass: 'loss' } : { highlight: true },
                   )
                 : ''
           }
@@ -210,11 +221,14 @@ export function renderProjectDetail(projectId) {
                 )
               : isPartialRecovered
                 ? `
-                  ${detailRow('My Amount Recovered', escapeHtml(formatUsd(myRecovered)))}
+                  ${detailRow(`${isOther ? 'My Return Amount' : 'My Amount Recovered'}`, escapeHtml(formatUsd(myRecovered)))}
                   ${detailRow('My Loss', escapeHtml(formatUsd(myActualLoss)), { valueClass: 'loss' })}
                 `
               : showRecoveredAmounts
-                ? detailRow('My Recovered', escapeHtml(formatUsd(myRecovered)))
+                ? detailRow(
+                    isOther ? 'My Return Amount' : 'My Recovered',
+                    escapeHtml(formatUsd(myRecovered)),
+                  )
                 : ''
           }
           ${
@@ -229,7 +243,11 @@ export function renderProjectDetail(projectId) {
                   )
                 : hasLoss
                   ? detailRow('My Actual Loss', escapeHtml(formatUsd(myActualLoss)), { valueClass: 'loss' })
-                  : detailRow('My Actual Return', escapeHtml(formatUsd(myActualReturn)))
+                  : detailRow(
+                      isOther ? 'My Net Gain / Loss' : 'My Actual Return',
+                      escapeHtml(formatUsd(myActualReturn)),
+                      { highlight: true },
+                    )
           }
         `
         : ''

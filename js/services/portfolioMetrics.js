@@ -14,6 +14,7 @@ import {
   getProjectStatusLabel,
   getProjectOutcome,
   isRealEstateProject,
+  isOtherProject,
   isProjectClosed,
   resolveProjectStatus,
 } from '../calculations.js';
@@ -70,11 +71,13 @@ export function formatReportMoney(value, { decimals = 1 } = {}) {
 export function getProjectMetrics(project) {
   const displayStatus = resolveProjectStatus(project, REMINDER_WINDOW_DAYS);
 
-  if (isRealEstateProject(project.type)) {
+  if (isRealEstateProject(project.type) || isOtherProject(project.type)) {
     return {
       expectedReturn: 0,
       maturityTotal: project.amount,
-      unrealizedGain: calculateUnrealizedGain(project.amount, project.estimatedValue),
+      unrealizedGain: isRealEstateProject(project.type)
+        ? calculateUnrealizedGain(project.amount, project.estimatedValue)
+        : null,
       displayStatus,
     };
   }
@@ -134,6 +137,10 @@ export function getProjectReportGainLoss(project, metrics) {
 
   if (isRealEstateProject(project.type)) {
     return metrics.unrealizedGain;
+  }
+
+  if (isOtherProject(project.type)) {
+    return 0;
   }
 
   return metrics.expectedReturn;
@@ -282,10 +289,11 @@ export function renderProjectSummaryCard(project, metrics, options = {}) {
   const badge = projectStatusBadge(metrics.displayStatus);
   const amountDisplay = getProjectCardAmountDisplay(project);
   const isRealEstate = isRealEstateProject(project.type);
+  const isOther = isOtherProject(project.type);
 
-  if (isRealEstate) {
+  if (isRealEstate || isOther) {
     return `
-      <article class="card clickable project-summary-card project-summary-card--re" ${dataAttrs}>
+      <article class="card clickable project-summary-card project-summary-card--re${isOther ? ' project-summary-card--other' : ''}" ${dataAttrs}>
         <div class="project-summary-card-body">
           <div class="card-row project-card-compact">
             <span class="project-type-icon" aria-hidden="true">${getProjectTypeIcon(project.type)}</span>

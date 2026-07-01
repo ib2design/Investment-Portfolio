@@ -17,6 +17,7 @@ import {
   formatUsd,
   getDisplayAmount,
   isRealEstateProject,
+  isOtherProject,
   isSoldProjectStatus,
   isClosedProjectStatus,
 } from '../calculations.js';
@@ -154,7 +155,7 @@ export function renderProjectForm(companyId, projectId) {
         <p class="field-error hidden" getData()-field-error="closedDate"></p>
       </div>
       <div class="field interest-closed-field closed-recovered-field hidden" id="amount-recovered-field" getData()-field="amountRecovered">
-        <label for="amount-recovered">${fieldLabel(`Amount Recovered (${CURRENCY})`, true)}</label>
+        <label for="amount-recovered" id="amount-recovered-label">${fieldLabel(`Amount Recovered (${CURRENCY})`, true)}</label>
         <input id="amount-recovered" name="amountRecovered" type="text" inputmode="decimal" autocomplete="off" value="${escapeHtml(existing?.amountRecovered ?? '')}" />
         <span class="field-hint" id="amount-recovered-hint"></span>
         <p class="field-error hidden" getData()-field-error="amountRecovered"></p>
@@ -198,7 +199,7 @@ export function renderProjectForm(companyId, projectId) {
       </div>
       <div class="card detail-grid hidden" id="outcome-preview">
         <div class="detail-item" id="preview-return-row">
-          <span class="detail-label">Actual Return (Preview)</span>
+          <span class="detail-label" id="preview-return-label">Actual Return (Preview)</span>
           <span class="detail-value highlight" id="preview-actual-return">${escapeHtml(formatUsd(0))}</span>
         </div>
         <div class="detail-item hidden" id="preview-my-gain-row">
@@ -239,8 +240,10 @@ export function renderProjectForm(companyId, projectId) {
   const aprPercentInput = dom.appRoot.querySelector('#apr-percent');
   const estimatedValueInput = dom.appRoot.querySelector('#estimated-value');
   const previewReturnRow = dom.appRoot.querySelector('#preview-return-row');
+  const previewReturnLabel = dom.appRoot.querySelector('#preview-return-label');
   const previewMyGainRow = dom.appRoot.querySelector('#preview-my-gain-row');
   const previewMyLossRow = dom.appRoot.querySelector('#preview-my-loss-row');
+  const amountRecoveredLabel = dom.appRoot.querySelector('#amount-recovered-label');
 
   bindDecimalInput(dom.appRoot.querySelector('#amount'));
   bindDecimalInput(aprPercentInput);
@@ -254,6 +257,7 @@ export function renderProjectForm(companyId, projectId) {
     const formData = new FormData(form);
     const type = formData.get('type');
     const isRealEstate = isRealEstateProject(type);
+    const isOther = isOtherProject(type);
     const status = formData.get('status') || PROJECT_STATUS.ACTIVE;
     const isSold = isRealEstate && isSoldProjectStatus(status);
     const closed = !isRealEstate && isClosedProjectStatus(status);
@@ -267,9 +271,9 @@ export function renderProjectForm(companyId, projectId) {
       typeOther: truncate(formData.get('typeOther'), LIMITS.typeOther),
       dateInvested: formData.get('dateInvested'),
       amount: Number(formData.get('amount')),
-      aprPercent: isRealEstate ? null : aprRaw ? Number(aprRaw) : Number.NaN,
-      aprType: isRealEstate ? null : formData.get('aprType'),
-      maturationDate: isRealEstate ? null : formData.get('maturationDate'),
+      aprPercent: isRealEstate || isOther ? null : aprRaw ? Number(aprRaw) : Number.NaN,
+      aprType: isRealEstate || isOther ? null : formData.get('aprType'),
+      maturationDate: isRealEstate || isOther ? null : formData.get('maturationDate'),
       loanPayoffDate: isRealEstate && !isSold ? formData.get('loanPayoffDate') : null,
       estimatedValue: isRealEstate && !isSold && estimatedRaw ? Number(estimatedRaw) : null,
       status,
@@ -327,7 +331,14 @@ export function renderProjectForm(companyId, projectId) {
   }
 
   function validateClosedAmountRecovered() {
-    if (!statusRequiresAmountRecovered(statusSelect.value)) {
+    const isOther = isOtherProject(typeSelect.value);
+    const status = statusSelect.value;
+    const shouldValidate =
+      isOther && isClosedProjectStatus(status) && status !== PROJECT_STATUS.CLOSED_LOSS
+        ? true
+        : statusRequiresAmountRecovered(status);
+
+    if (!shouldValidate) {
       setFieldError(form, 'amountRecovered', '');
       return;
     }
@@ -356,10 +367,12 @@ export function renderProjectForm(companyId, projectId) {
     const isRealEstate = isRealEstateProject(values.type);
     const isSold = isRealEstate && isSoldProjectStatus(values.status);
 
-    if (values.closed || isSold) {
+    if (values.closed || isSold || isOtherProject(values.type)) {
       setFieldError(form, 'maturationDate', '');
       setFieldError(form, 'loanPayoffDate', '');
-      return;
+      if (values.closed || isSold) {
+        return;
+      }
     }
 
     if (!values.dateInvested) {
@@ -388,26 +401,46 @@ export function renderProjectForm(companyId, projectId) {
     rebuildStatusOptions();
 
     const isRealEstate = isRealEstateProject(typeSelect.value);
+    const isOther = isOtherProject(typeSelect.value);
+    const hideInterestFields = isRealEstate || isOther;
 
     dom.appRoot.querySelectorAll('.interest-based-field').forEach((element) => {
-      element.classList.toggle('hidden', isRealEstate);
+      element.classList.toggle('hidden', hideInterestFields);
     });
     dom.appRoot.querySelectorAll('.real-estate-field').forEach((element) => {
       element.classList.toggle('hidden', !isRealEstate);
     });
 
-    maturationDateInput.required = !isRealEstate;
-    aprPercentInput.required = !isRealEstate;
+    maturationDateInput.required = !isRealEstate && !isOther;
+    aprPercentInput.required = !isRealEstate && !isOther;
 
-    statusHint.textContent = isRealEstate
-      ? 'Overdue is applied automatically when a reminder or loan payoff date has passed.'
-      : 'Overdue is applied automatically when a reminder or maturation date has passed.';
+    if (isRealEstate) {
+      statusHint.textContent =
+        'Overdue is applied automatically when a reminder or loan payoff date has passed.';
+    } else if (isOther) {
+      statusHint.textContent = 'Overdue is applied automatically when a reminder date has passed.';
+    } else {
+      statusHint.textContent =
+        'Overdue is applied automatically when a reminder or maturation date has passed.';
+    }
 
     if (isRealEstate) {
       setFieldError(form, 'aprPercent', '');
       setFieldError(form, 'maturationDate', '');
       setFieldError(form, 'closedDate', '');
       setFieldError(form, 'amountRecovered', '');
+    } else if (isOther) {
+      aprPercentInput.value = '';
+      maturationDateInput.value = '';
+      loanPayoffDateInput.required = false;
+      soldDateInput.required = false;
+      soldPriceInput.required = false;
+      setFieldError(form, 'aprPercent', '');
+      setFieldError(form, 'maturationDate', '');
+      setFieldError(form, 'loanPayoffDate', '');
+      setFieldError(form, 'estimatedValue', '');
+      setFieldError(form, 'soldDate', '');
+      setFieldError(form, 'soldPrice', '');
     } else {
       loanPayoffDateInput.required = false;
       soldDateInput.required = false;
@@ -423,10 +456,15 @@ export function renderProjectForm(companyId, projectId) {
 
   function toggleStatusFields() {
     const isRealEstate = isRealEstateProject(typeSelect.value);
+    const isOther = isOtherProject(typeSelect.value);
     const status = statusSelect.value;
     const isSold = isRealEstate && isSoldProjectStatus(status);
     const interestClosed = !isRealEstate && isClosedProjectStatus(status);
-    const showAmountRecovered = interestClosed && statusRequiresAmountRecovered(status);
+    const showReturnAmount =
+      interestClosed &&
+      (isOther
+        ? status !== PROJECT_STATUS.CLOSED_LOSS
+        : statusRequiresAmountRecovered(status));
 
     dom.appRoot.querySelectorAll('.open-only-field').forEach((element) => {
       element.classList.toggle('hidden', isRealEstate ? isSold : interestClosed);
@@ -437,7 +475,7 @@ export function renderProjectForm(companyId, projectId) {
     dom.appRoot.querySelectorAll('.re-sold-field').forEach((element) => {
       element.classList.toggle('hidden', !isSold);
     });
-    amountRecoveredField.classList.toggle('hidden', !showAmountRecovered);
+    amountRecoveredField.classList.toggle('hidden', !showReturnAmount);
 
     if (isRealEstate) {
       dom.appRoot.querySelectorAll('.re-active-field').forEach((element) => {
@@ -449,16 +487,26 @@ export function renderProjectForm(companyId, projectId) {
     }
 
     closedDateInput.required = interestClosed;
-    amountRecoveredInput.required = showAmountRecovered;
+    amountRecoveredInput.required = showReturnAmount;
 
-    returnPreview.classList.toggle('hidden', isRealEstate || interestClosed);
+    returnPreview.classList.toggle('hidden', isRealEstate || isOther || interestClosed);
     valuePreview.classList.toggle('hidden', !isRealEstate || isSold);
     outcomePreview.classList.toggle('hidden', !(isSold || interestClosed));
 
     if (!isRealEstate && interestClosed) {
-      updateAmountRecoveredHint(status);
+      updateAmountRecoveredHint(status, isOther);
     } else {
       amountRecoveredHint.textContent = '';
+    }
+
+    if (amountRecoveredLabel) {
+      amountRecoveredLabel.innerHTML = isOther
+        ? fieldLabel(`Return Amount (${CURRENCY})`, true)
+        : fieldLabel(`Amount Recovered (${CURRENCY})`, true);
+    }
+
+    if (previewReturnLabel) {
+      previewReturnLabel.textContent = isOther ? 'Net Gain / Loss (Preview)' : 'Actual Return (Preview)';
     }
 
     if (isSold && isRealEstate) {
@@ -466,7 +514,7 @@ export function renderProjectForm(companyId, projectId) {
       setFieldError(form, 'estimatedValue', '');
     }
 
-    if (!showAmountRecovered) {
+    if (!showReturnAmount) {
       amountRecoveredInput.value = '';
       setFieldError(form, 'amountRecovered', '');
     }
@@ -478,7 +526,17 @@ export function renderProjectForm(companyId, projectId) {
     typeOtherField.classList.toggle('hidden', typeSelect.value !== 'other');
   }
 
-  function updateAmountRecoveredHint(status) {
+  function updateAmountRecoveredHint(status, isOther = false) {
+    if (isOther) {
+      const otherHints = {
+        [PROJECT_STATUS.MATURED]: 'Total cash returned to the group.',
+        [PROJECT_STATUS.PARTIAL_RECOVERED]:
+          'Must be greater than zero and less than the invested amount.',
+      };
+      amountRecoveredHint.textContent = otherHints[status] || 'Cash returned on close.';
+      return;
+    }
+
     const hints = {
       [PROJECT_STATUS.MATURED]: 'Total cash returned to the group.',
       [PROJECT_STATUS.PARTIAL_RECOVERED]:
@@ -492,6 +550,7 @@ export function renderProjectForm(companyId, projectId) {
     const formData = new FormData(form);
     const amount = Number(formData.get('amount'));
     const isRealEstate = isRealEstateProject(typeSelect.value);
+    const isOther = isOtherProject(typeSelect.value);
     const isSold = isRealEstate && isSoldProjectStatus(statusSelect.value);
     const interestClosed = !isRealEstate && isClosedProjectStatus(statusSelect.value);
 
@@ -509,7 +568,7 @@ export function renderProjectForm(companyId, projectId) {
         previewGain.classList.toggle('highlight', unrealizedGain > 0);
         previewGain.classList.toggle('loss', unrealizedGain < 0);
       }
-    } else if (!isRealEstate && !interestClosed) {
+    } else if (!isRealEstate && !isOther && !interestClosed) {
       const expectedReturn = calculateExpectedReturn(
         amount,
         Number(formData.get('aprPercent')),

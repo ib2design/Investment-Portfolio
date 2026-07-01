@@ -56,6 +56,7 @@ function createEmptyData() {
 function normalizeProject(project) {
   const validStatuses = new Set(Object.values(PROJECT_STATUS));
   const isRealEstate = project.type === 'real_estate';
+  const isOther = project.type === 'other';
   let loanPayoffDate = project.loanPayoffDate || null;
   let status = validStatuses.has(project.status) ? project.status : PROJECT_STATUS.ACTIVE;
   let soldDate = project.soldDate || null;
@@ -95,13 +96,13 @@ function normalizeProject(project) {
     soldDate: isRealEstate && status === PROJECT_STATUS.SOLD ? soldDate : null,
     soldPrice: isRealEstate && status === PROJECT_STATUS.SOLD ? soldPrice : null,
     loanPayoffDate: isRealEstate ? loanPayoffDate : null,
-    maturationDate: isRealEstate ? null : project.maturationDate || null,
+    maturationDate: isRealEstate || isOther ? null : project.maturationDate || null,
     estimatedValue:
       isRealEstate && status !== PROJECT_STATUS.SOLD && project.estimatedValue !== null
         ? Number(project.estimatedValue)
         : null,
-    aprPercent: isRealEstate ? null : project.aprPercent ?? null,
-    aprType: isRealEstate ? null : project.aprType ?? null,
+    aprPercent: isRealEstate || isOther ? null : project.aprPercent ?? null,
+    aprType: isRealEstate || isOther ? null : project.aprType ?? null,
     amountRecovered: isRealEstate
       ? null
       : project.amountRecovered === null || project.amountRecovered === undefined

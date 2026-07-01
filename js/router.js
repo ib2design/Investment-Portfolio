@@ -12,7 +12,6 @@ import { renderReminders } from './views/reminders.js';
 import { renderReports } from './views/reports.js';
 import { renderSettings } from './views/settings.js';
 import { renderPinSetup, renderPinChange, renderPinRemove, renderEraseData } from './views/pinViews.js';
-import { SHARE_FORMAT } from '../constants.js';
 import { renderBackupExport, renderBackupImport } from './views/backup.js';
 import { renderShareImportPin, renderShareImportReview } from './views/shareImport.js';
 

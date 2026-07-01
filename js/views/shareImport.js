@@ -2,8 +2,7 @@ import { SHARE_PIN_LENGTH, SHARE_FILE_EXTENSION } from '../constants.js';
 import { dom, viewState, reloadData } from '../context.js';
 import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
-import { canUseBackupEncryption } from '../backup.js';
-import { decryptShareFile, isValidSharePin, parseShareFile } from '../share.js';
+import { decryptShareFile, isValidSharePin } from '../share.js';
 import {
   applyShareImport,
   buildShareImportPlan,
@@ -130,31 +129,4 @@ export function renderShareImportReview() {
       window.alert(error instanceof Error ? error.message : 'Could not import this project.');
     }
   });
-}
-
-export async function handleImportShareFile(json) {
-  let parsed;
-
-  try {
-    parsed = parseShareFile(json);
-  } catch (error) {
-    window.alert(error instanceof Error ? error.message : 'Could not read share file.');
-    return;
-  }
-
-  if (parsed.encrypted) {
-    if (!canUseBackupEncryption()) {
-      window.alert('This encrypted share file cannot be opened in this browser.');
-      return;
-    }
-
-    viewState.shareImportFile = parsed.file;
-    viewState.shareImportPayload = null;
-    navigate('share-import-pin');
-    return;
-  }
-
-  viewState.shareImportFile = null;
-  viewState.shareImportPayload = parsed.payload;
-  navigate('share-import-review');
 }

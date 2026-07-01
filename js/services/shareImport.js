@@ -17,7 +17,9 @@ import {
   upsertCompany,
   upsertProject,
 } from '../storage.js';
-import { validateSharePayload } from '../share.js';
+import { validateSharePayload, parseShareFile } from '../share.js';
+import { canUseBackupEncryption } from '../backup.js';
+import { viewState } from '../context.js';
 
 function namesMatch(left, right) {
   return left.localeCompare(right, undefined, { sensitivity: 'accent' }) === 0;
@@ -202,4 +204,22 @@ export function applyShareImport(payload) {
     createdCompany: plan.willCreateCompany,
     overwroteProject: plan.willOverwriteProject,
   };
+}
+
+export function prepareShareImportFromFile(json) {
+  const parsed = parseShareFile(json);
+
+  if (parsed.encrypted) {
+    if (!canUseBackupEncryption()) {
+      throw new Error('This encrypted share file cannot be opened in this browser.');
+    }
+
+    viewState.shareImportFile = parsed.file;
+    viewState.shareImportPayload = null;
+    return 'share-import-pin';
+  }
+
+  viewState.shareImportFile = null;
+  viewState.shareImportPayload = parsed.payload;
+  return 'share-import-review';
 }

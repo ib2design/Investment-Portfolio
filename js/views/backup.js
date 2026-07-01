@@ -22,7 +22,7 @@ import {
   pinFieldMarkup,
   bindPinForm,
 } from '../ui/forms.js';
-import { handleImportShareFile } from './shareImport.js';
+import { prepareShareImportFromFile } from '../services/shareImport.js';
 
 export function buildCurrentBackupPayload() {
   const data = getData();
@@ -97,7 +97,11 @@ export async function handleImportBackupFile(file) {
   }
 
   if (json?.format === SHARE_FORMAT) {
-    await handleImportShareFile(json);
+    try {
+      navigate(prepareShareImportFromFile(json));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Could not read share file.');
+    }
     return;
   }
 

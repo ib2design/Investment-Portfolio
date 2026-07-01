@@ -266,3 +266,48 @@ export function wipePortfolioAndPin() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(PIN_HASH_KEY);
 }
+
+export function buildPortfolioPreferences() {
+  return {
+    theme: getTheme(),
+    amountDisplay: getAmountDisplayMode(),
+    projectFilter: getProjectFilter(),
+  };
+}
+
+export function importPortfolioSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object') {
+    throw new Error('Invalid backup data.');
+  }
+
+  if (!Array.isArray(snapshot.companies) || !Array.isArray(snapshot.projects)) {
+    throw new Error('Backup file is missing portfolio data.');
+  }
+
+  const imported = {
+    schemaVersion: snapshot.schemaVersion ?? SCHEMA_VERSION,
+    companies: snapshot.companies,
+    projects: snapshot.projects.map(normalizeProject),
+  };
+
+  writeRaw(imported);
+  ensureCompanyColors(imported);
+
+  const preferences = snapshot.preferences;
+
+  if (preferences && typeof preferences === 'object') {
+    if (preferences.theme === 'dark' || preferences.theme === 'light') {
+      saveTheme(preferences.theme);
+    }
+
+    if (preferences.amountDisplay) {
+      saveAmountDisplayMode(preferences.amountDisplay);
+    }
+
+    if (preferences.projectFilter) {
+      saveProjectFilter(preferences.projectFilter);
+    }
+  }
+
+  return imported;
+}

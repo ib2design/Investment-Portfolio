@@ -57,6 +57,14 @@ import {
 } from './formInputs.js';
 import { hasPin, isValidPin, verifyPin, savePin, removePin } from './pin.js';
 import {
+  buildPlainBackupPayload,
+  canUseBackupEncryption,
+  decryptBackupFile,
+  downloadBackupFile,
+  encryptBackupPayload,
+  parseBackupFile,
+} from './backup.js';
+import {
   createId,
   deleteCompany,
   deleteProject,
@@ -75,6 +83,8 @@ import {
   upsertCompany,
   upsertProject,
   wipePortfolioAndPin,
+  buildPortfolioPreferences,
+  importPortfolioSnapshot,
 } from './storage.js';
 
 const appRoot = document.getElementById('app-root');
@@ -94,7 +104,10 @@ const state = {
   view: 'portfolio',
   companyId: null,
   projectId: null,
+  backupPayload: null,
 };
+
+let importFileInput = null;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -2799,6 +2812,240 @@ function renderReports() {
   });
 }
 
+function buildCurrentBackupPayload() {
+  return buildPlainBackupPayload({
+    companies: data.companies,
+    projects: data.projects,
+    preferences: buildPortfolioPreferences(),
+  });
+}
+
+function applyImportedBackup(snapshot) {
+  importPortfolioSnapshot(snapshot);
+  data = loadData();
+  applyInitialTheme();
+  updateAmountModeIndicator();
+}
+
+function ensureImportFileInput() {
+  if (importFileInput) {
+    return importFileInput;
+  }
+
+  importFileInput = document.createElement('input');
+  importFileInput.type = 'file';
+  importFileInput.accept = '.json,application/json';
+  importFileInput.hidden = true;
+  importFileInput.addEventListener('change', () => {
+    const file = importFileInput.files?.[0];
+    importFileInput.value = '';
+
+    if (file) {
+      void handleImportBackupFile(file);
+    }
+  });
+  document.body.appendChild(importFileInput);
+  return importFileInput;
+}
+
+async function exportPlainBackup() {
+  downloadBackupFile(buildCurrentBackupPayload());
+}
+
+function handleExportBackupClick() {
+  if (hasPin()) {
+    if (!canUseBackupEncryption()) {
+      window.alert('Encrypted export is not available in this browser.');
+      return;
+    }
+
+    navigate('backup-export');
+    return;
+  }
+
+  const exportAnyway = window.confirm(
+    'No app PIN is set. Your export will not be encrypted, and anyone with the file can read your portfolio data.\n\nSet up a PIN under Security to encrypt backup files.\n\nExport without encryption anyway?',
+  );
+
+  if (exportAnyway) {
+    void exportPlainBackup();
+  }
+}
+
+async function handleImportBackupFile(file) {
+  let parsed;
+
+  try {
+    parsed = parseBackupFile(JSON.parse(await file.text()));
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : 'Could not read backup file.');
+    return;
+  }
+
+  if (parsed.encrypted) {
+    if (!canUseBackupEncryption()) {
+      window.alert('This encrypted backup cannot be opened in this browser.');
+      return;
+    }
+
+    state.backupPayload = parsed.file;
+    navigate('backup-import');
+    return;
+  }
+
+  const replace = window.confirm(
+    parsed.payload.encrypted === false
+      ? 'This backup is not encrypted. Import will replace all companies and projects on this device. Continue?'
+      : 'Import will replace all companies and projects on this device. Continue?',
+  );
+
+  if (!replace) {
+    return;
+  }
+
+  try {
+    applyImportedBackup(parsed.payload);
+    window.alert('Portfolio imported successfully.');
+    navigate('portfolio');
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : 'Could not import backup.');
+  }
+}
+
+function renderBackupExport() {
+  if (!hasPin()) {
+    navigate('settings');
+    return;
+  }
+
+  updateChrome({
+    subtitle: 'Export backup',
+    showBack: true,
+    showFab: false,
+  });
+
+  appRoot.innerHTML = `
+    <section class="card settings-group">
+      <h2 class="section-title">Export backup</h2>
+      <p class="field-hint">Enter your app PIN to create an encrypted backup file on your device.</p>
+      <form class="form pin-form project-form" id="backup-export-form" novalidate>
+        ${pinFieldMarkup('pin', 'App PIN', 'current-password')}
+        <p class="field-error hidden" data-form-error="backup-export"></p>
+        <button type="submit" class="btn btn-primary btn-block">Export encrypted file</button>
+      </form>
+    </section>
+  `;
+
+  const form = appRoot.querySelector('#backup-export-form');
+
+  if (!form) {
+    return;
+  }
+
+  bindPinForm(form);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    void runPinFormAction(form, async () => {
+      const pin = String(new FormData(form).get('pin') ?? '');
+
+      if (!isValidPin(pin)) {
+        showPinFormError(form, `PIN must be ${PIN_LENGTH} digits.`);
+        return;
+      }
+
+      if (!(await verifyPin(pin))) {
+        showPinFormError(form, 'Incorrect PIN. Try again.');
+        return;
+      }
+
+      try {
+        const encryptedFile = await encryptBackupPayload(buildCurrentBackupPayload(), pin);
+        downloadBackupFile(encryptedFile);
+        navigate('settings');
+      } catch (error) {
+        showPinFormError(form, error instanceof Error ? error.message : 'Could not export backup.');
+      }
+    });
+  });
+}
+
+function renderBackupImport() {
+  if (!state.backupPayload) {
+    navigate('settings');
+    return;
+  }
+
+  updateChrome({
+    subtitle: 'Import backup',
+    showBack: true,
+    showFab: false,
+  });
+
+  appRoot.innerHTML = `
+    <section class="card settings-group">
+      <h2 class="section-title">Import backup</h2>
+      <p class="field-hint">This backup is encrypted. Enter the app PIN that was used when it was exported.</p>
+      <form class="form pin-form project-form" id="backup-import-form" novalidate>
+        ${pinFieldMarkup('pin', 'App PIN', 'current-password')}
+        <p class="field-error hidden" data-form-error="backup-import"></p>
+        <button type="submit" class="btn btn-primary btn-block">Decrypt and import</button>
+      </form>
+    </section>
+  `;
+
+  const form = appRoot.querySelector('#backup-import-form');
+
+  if (!form) {
+    return;
+  }
+
+  bindPinForm(form);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    void runPinFormAction(form, async () => {
+      const pin = String(new FormData(form).get('pin') ?? '');
+
+      if (!isValidPin(pin)) {
+        showPinFormError(form, `PIN must be ${PIN_LENGTH} digits.`);
+        return;
+      }
+
+      let snapshot;
+
+      try {
+        snapshot = await decryptBackupFile(state.backupPayload, pin);
+      } catch (error) {
+        showPinFormError(
+          form,
+          error instanceof Error ? error.message : 'Could not decrypt backup file.',
+        );
+        return;
+      }
+
+      const replace = window.confirm(
+        'Import will replace all companies and projects on this device. Continue?',
+      );
+
+      if (!replace) {
+        return;
+      }
+
+      try {
+        applyImportedBackup(snapshot);
+        state.backupPayload = null;
+        window.alert('Portfolio imported successfully.');
+        navigate('portfolio');
+      } catch (error) {
+        showPinFormError(form, error instanceof Error ? error.message : 'Could not import backup.');
+      }
+    });
+  });
+}
+
 function renderSettings() {
   const currentTheme = getTheme();
   const displayMode = getAmountDisplayMode();
@@ -2855,6 +3102,14 @@ function renderSettings() {
       }
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
+      <h2 class="section-title">Backup</h2>
+      <p class="field-hint">Export or import your portfolio as a JSON file on this device.</p>
+      <div class="security-options security-options--two">
+        <button type="button" class="btn btn-secondary security-action" id="settings-export-backup">Export</button>
+        <button type="button" class="btn btn-secondary security-action" id="settings-import-backup">Import</button>
+      </div>
+    </section>
+    <section class="card settings-group" style="margin-top: 8px;">
       <button type="button" class="btn btn-help btn-block" id="settings-help-button">Help</button>
     </section>
   `;
@@ -2873,6 +3128,12 @@ function renderSettings() {
 
   appRoot.querySelector('#settings-erase-data')?.addEventListener('click', () => {
     navigate('erase-data');
+  });
+
+  appRoot.querySelector('#settings-export-backup')?.addEventListener('click', handleExportBackupClick);
+
+  appRoot.querySelector('#settings-import-backup')?.addEventListener('click', () => {
+    ensureImportFileInput().click();
   });
 
   appRoot.querySelector('#settings-help-button')?.addEventListener('click', openHelpModal);
@@ -2942,6 +3203,12 @@ function render() {
     case 'erase-data':
       renderEraseData();
       break;
+    case 'backup-export':
+      renderBackupExport();
+      break;
+    case 'backup-import':
+      renderBackupImport();
+      break;
     case 'portfolio':
     default:
       renderPortfolio();
@@ -2972,6 +3239,11 @@ function goBack() {
     case 'pin-change':
     case 'pin-remove':
     case 'erase-data':
+    case 'backup-export':
+    case 'backup-import':
+      if (state.view === 'backup-import') {
+        state.backupPayload = null;
+      }
       navigate('settings');
       break;
     default:

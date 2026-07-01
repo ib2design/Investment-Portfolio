@@ -186,7 +186,7 @@ export function bindEraseDataForm(scope, confirmPhrase, onCancel, onConfirm) {
     return;
   }
 
-  const isConfirmed = () => confirmInput.value.trim() === confirmPhrase;
+  const isConfirmed = () => confirmInput.value.trim().toLowerCase() === confirmPhrase.toLowerCase();
 
   const syncSubmitButton = () => {
     submitButton.disabled = !isConfirmed();
@@ -211,6 +211,11 @@ export function bindEraseDataForm(scope, confirmPhrase, onCancel, onConfirm) {
       return;
     }
 
-    onConfirm?.();
+    try {
+      onConfirm?.();
+    } catch (error) {
+      console.error(error);
+      showPinFormError(form, 'Could not erase data. Try again.');
+    }
   });
 }

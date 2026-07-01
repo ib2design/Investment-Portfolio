@@ -41,7 +41,10 @@ export function completeDataWipe() {
   wipePortfolioAndPin();
   reloadData();
   resetViewStateAfterWipe();
-  unlockApp();
+  setPinUnlocked(true);
+  setPinLockVisible(false);
+  unlockRenderCallback?.();
+  resetScrollPosition();
 }
 
 export function bindPinForgotFlow() {

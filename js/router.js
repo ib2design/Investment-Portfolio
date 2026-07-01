@@ -15,8 +15,10 @@ import { renderPinSetup, renderPinChange, renderPinRemove, renderEraseData } fro
 import { renderBackupExport, renderBackupImport } from './views/backup.js';
 import { renderShareImportPin, renderShareImportReview } from './views/shareImport.js';
 
+const VIEWS_WITHOUT_PIN_UNLOCK = new Set(['pin-setup', 'pin-change']);
+
 export function navigate(view, options = {}) {
-  if (hasPin() && !isPinUnlocked() && view !== 'pin-setup' && view !== 'pin-change') {
+  if (hasPin() && !isPinUnlocked() && !VIEWS_WITHOUT_PIN_UNLOCK.has(view)) {
     return;
   }
 
@@ -134,6 +136,11 @@ export function bindGlobalEvents() {
   dom.backButton.addEventListener('click', goBack);
 
   dom.appRoot.addEventListener('click', (event) => {
+    if (event.target.closest('#settings-erase-data')) {
+      navigate('erase-data');
+      return;
+    }
+
     const link = event.target.closest('a[data-external-link]');
 
     if (!link) {

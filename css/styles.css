@@ -16,7 +16,8 @@
   --shadow: 0 8px 24px rgba(15, 32, 43, 0.08);
   --radius: 14px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --nav-edge-padding-bottom: var(--safe-bottom);
+  --nav-bottom-boost: 5px;
+  --nav-edge-padding-bottom: calc(var(--safe-bottom) + var(--nav-bottom-boost));
   --nav-content-height: 48px;
   --nav-top-padding: 4px;
   --nav-height: calc(var(--nav-top-padding) + var(--nav-content-height) + var(--nav-edge-padding-bottom));
@@ -249,7 +250,7 @@ body.fab-visible {
 
 @media (display-mode: standalone) {
   :root {
-    --nav-edge-padding-bottom: 6px;
+    --nav-edge-padding-bottom: calc(6px + var(--nav-bottom-boost));
   }
 }
 

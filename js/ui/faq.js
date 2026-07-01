@@ -94,9 +94,17 @@ function faqItemMarkup({ question, answer }) {
   `;
 }
 
+const CONTACT_EMAIL = 'ib2design@yahoo.com';
+
 export function faqContentMarkup() {
   const intro = FAQ_INTRO.map(faqIntroMarkup).join('');
   const items = FAQ_ITEMS.map(faqItemMarkup).join('');
+  const contact = `
+    <p class="faq-contact">
+      Questions or feedback?
+      <a href="mailto:${CONTACT_EMAIL}">${escapeHtml(CONTACT_EMAIL)}</a>
+    </p>
+  `;
 
-  return `<div class="settings-faq" id="settings-faq">${intro}${items}</div>`;
+  return `<div class="settings-faq" id="settings-faq">${intro}${items}${contact}</div>`;
 }

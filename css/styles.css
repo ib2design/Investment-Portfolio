@@ -1215,6 +1215,26 @@ body.help-modal-open {
   line-height: 1.45;
 }
 
+.faq-contact {
+  margin: 6px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.faq-contact a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.faq-contact a:active {
+  opacity: 0.85;
+}
+
 .fab {
   position: fixed;
   z-index: 110;

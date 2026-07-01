@@ -1,0 +1,5 @@
+.git
+.vscode
+serve.bat
+*.zip
+deploy.zip

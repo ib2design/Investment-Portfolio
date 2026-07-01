@@ -16,8 +16,10 @@
   --shadow: 0 8px 24px rgba(15, 32, 43, 0.08);
   --radius: 14px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --nav-content-height: 52px;
-  --nav-height: calc(var(--nav-content-height) + var(--safe-bottom));
+  --nav-edge-padding-bottom: var(--safe-bottom);
+  --nav-content-height: 48px;
+  --nav-top-padding: 4px;
+  --nav-height: calc(var(--nav-top-padding) + var(--nav-content-height) + var(--nav-edge-padding-bottom));
   --fab-clearance: 0px;
   --app-name-red: #f06a6a;
   --app-name-orange: #f5a623;
@@ -206,7 +208,7 @@ button {
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 16px 16px calc(var(--nav-height) + var(--safe-bottom) + 16px + var(--fab-clearance));
+  padding: 16px 16px calc(var(--nav-height) + 16px + var(--fab-clearance));
 }
 
 body.fab-visible {
@@ -216,11 +218,12 @@ body.fab-visible {
 .bottom-nav {
   position: fixed;
   z-index: 100;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  transform: translateX(-50%);
   width: min(720px, 100%);
-  padding: 4px 12px var(--safe-bottom);
+  margin-inline: auto;
+  padding: var(--nav-top-padding) 12px var(--nav-edge-padding-bottom);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
@@ -236,12 +239,18 @@ body.fab-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 2px;
   min-height: var(--nav-content-height);
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 2px 4px;
+  padding: 0 4px;
+}
+
+@media (display-mode: standalone) {
+  :root {
+    --nav-edge-padding-bottom: 6px;
+  }
 }
 
 .nav-icon {
@@ -1240,7 +1249,7 @@ body.help-modal-open {
   position: fixed;
   z-index: 110;
   right: max(16px, calc((100vw - 720px) / 2 + 16px));
-  bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px);
+  bottom: calc(var(--nav-height) + 16px);
   width: 56px;
   height: 56px;
   border: 0;

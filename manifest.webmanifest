@@ -1,6 +1,6 @@
 {
   "name": "Investment Portfolio",
-  "short_name": "Portfolio",
+  "short_name": "Investment Portfolio",
   "description": "Private local investment portfolio tracker",
   "start_url": ".",
   "display": "standalone",

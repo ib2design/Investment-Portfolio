@@ -40,14 +40,31 @@ function reportMoneyParts(value) {
   };
 }
 
-export function formatReportMoney(value) {
+export function formatReportMoney(value, { decimals = 1 } = {}) {
   const parts = reportMoneyParts(value);
 
   if (!parts) {
     return '—';
   }
 
-  return `${parts.sign}$${Math.round(parts.abs)}`;
+  const { abs, sign } = parts;
+
+  if (abs >= 1000000) {
+    return `${sign}$${(abs / 1000000).toFixed(2)}M`;
+  }
+
+  if (abs >= 1000) {
+    const thousands = abs / 1000;
+    const rounded = Number(thousands.toFixed(decimals));
+    const thousandsText =
+      decimals === 1 && rounded === Math.round(rounded)
+        ? String(Math.round(rounded))
+        : thousands.toFixed(decimals);
+
+    return `${sign}$${thousandsText}k`;
+  }
+
+  return `${sign}$${Math.round(abs)}`;
 }
 
 export function getProjectMetrics(project) {

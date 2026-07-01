@@ -98,42 +98,8 @@ export function reportGainLossClass(value) {
   return '';
 }
 
-function reportMoneyParts(value) {
-  if (value === null || value === undefined) {
-    return null;
-  }
-
-  const amount = Number(value);
-
-  if (Number.isNaN(amount) || amount === 0) {
-    return null;
-  }
-
-  return {
-    amount,
-    abs: Math.abs(amount),
-    sign: amount < 0 ? '-' : '',
-  };
-}
-
 export function formatReportTotalMoney(value) {
-  const parts = reportMoneyParts(value);
-
-  if (!parts) {
-    return '—';
-  }
-
-  const { abs, sign } = parts;
-
-  if (abs >= 1000000) {
-    return `${sign}$${(abs / 1000000).toFixed(2)}M`;
-  }
-
-  if (abs > 1000) {
-    return `${sign}$${(abs / 1000).toFixed(2)}k`;
-  }
-
-  return `${sign}$${Math.round(abs)}`;
+  return formatReportMoney(value, { decimals: 2 });
 }
 
 export function formatReportGainLoss(value, { total = false } = {}) {

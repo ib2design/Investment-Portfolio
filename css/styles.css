@@ -1427,6 +1427,23 @@ body.help-modal-open {
 }
 
 @media print {
+  :root,
+  [data-theme='dark'] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #f4f6f8;
+    --text: #15202b;
+    --text-muted: #5b6770;
+    --border: #cccccc;
+    --primary: #0f6cbd;
+    --danger: #b42318;
+    --success: #0d7a3f;
+    --warning: #8a6900;
+    --app-name-orange: #b86e00;
+    --shadow: none;
+  }
+
   .app-header,
   .bottom-nav,
   .fab,
@@ -1434,37 +1451,52 @@ body.help-modal-open {
     display: none !important;
   }
 
-  body {
-    background: #ffffff;
-    color: #111111;
+  body,
+  .app-shell,
+  .app-main,
+  .app-main--report {
+    background: #ffffff !important;
+    color: var(--text) !important;
   }
 
-  .app-main {
+  .app-main,
+  .app-shell {
     padding: 0 !important;
     max-width: none;
   }
 
-  .app-shell {
-    max-width: none;
+  .card,
+  .report-document.card {
+    background: #ffffff !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
   }
 
   .report-document {
     border: 0;
-    box-shadow: none;
     padding: 0;
   }
 
+  .report-amount-mode {
+    background: #fff4df !important;
+  }
+
+  [data-theme='dark'] .report-status-closed-loss {
+    color: var(--danger) !important;
+  }
+
+  [data-theme='dark'] .report-status-partial-recovered {
+    color: #9a4545 !important;
+  }
+
   .report-table th,
-  .report-table td {
-    border-color: #cccccc;
-  }
-
-  .report-table td.highlight {
-    color: #0d7a3f;
-  }
-
-  .report-table td.loss {
-    color: #b42318;
+  .report-table td,
+  [class*='report-status-'],
+  .report-table td.highlight,
+  .report-table td.loss,
+  .report-amount-mode {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

@@ -12,7 +12,9 @@ import { renderReminders } from './views/reminders.js';
 import { renderReports } from './views/reports.js';
 import { renderSettings } from './views/settings.js';
 import { renderPinSetup, renderPinChange, renderPinRemove, renderEraseData } from './views/pinViews.js';
+import { SHARE_FORMAT } from '../constants.js';
 import { renderBackupExport, renderBackupImport } from './views/backup.js';
+import { renderShareImportPin, renderShareImportReview } from './views/shareImport.js';
 
 export function navigate(view, options = {}) {
   if (hasPin() && !isPinUnlocked() && view !== 'pin-setup' && view !== 'pin-change') {
@@ -74,6 +76,12 @@ export function render() {
     case 'backup-import':
       renderBackupImport();
       break;
+    case 'share-import-pin':
+      renderShareImportPin();
+      break;
+    case 'share-import-review':
+      renderShareImportReview();
+      break;
     case 'portfolio':
     default:
       renderPortfolio();
@@ -106,8 +114,14 @@ export function goBack() {
     case 'erase-data':
     case 'backup-export':
     case 'backup-import':
+    case 'share-import-pin':
+    case 'share-import-review':
       if (viewState.view === 'backup-import') {
         viewState.backupPayload = null;
+      }
+      if (viewState.view === 'share-import-pin' || viewState.view === 'share-import-review') {
+        viewState.shareImportFile = null;
+        viewState.shareImportPayload = null;
       }
       navigate('settings');
       break;

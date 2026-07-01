@@ -2,6 +2,7 @@ import {
   AMOUNT_DISPLAY,
   PROJECT_FILTER,
   PIN_LENGTH,
+  SHARE_FILE_EXTENSION,
 } from '../constants.js';
 import { hasPin } from '../pin.js';
 import { dom } from '../context.js';
@@ -81,7 +82,7 @@ export function renderSettings() {
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Backup</h2>
-      <p class="field-hint">Export or import your portfolio as a JSON file on this device.</p>
+      <p class="field-hint">Export or import your full portfolio backup, or import a shared project file (${SHARE_FILE_EXTENSION}).</p>
       <div class="security-options security-options--two">
         <button type="button" class="btn btn-secondary security-action" id="settings-export-backup">Export</button>
         <button type="button" class="btn btn-secondary security-action" id="settings-import-backup">Import</button>

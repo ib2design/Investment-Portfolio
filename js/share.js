@@ -1,6 +1,7 @@
-import { SCHEMA_VERSION, SHARE_FILE_EXTENSION, SHARE_PIN_LENGTH } from './constants.js';
+import { SCHEMA_VERSION, SHARE_FILE_EXTENSION, SHARE_FORMAT, SHARE_PIN_LENGTH } from './constants.js';
 import {
   canUseBackupEncryption,
+  decryptPinProtectedFile,
   encryptSharePayload,
   getEncryptionUnavailableMessage,
 } from './backup.js';
@@ -45,6 +46,53 @@ export function getProjectShareFilename(companyName, projectName) {
 
 export function isValidSharePin(pin) {
   return isValidPinDigits(pin, SHARE_PIN_LENGTH);
+}
+
+export function validateSharePayload(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Share file is missing project data.');
+  }
+
+  if (!payload.company || typeof payload.company !== 'object') {
+    throw new Error('Share file is missing company data.');
+  }
+
+  if (!payload.project || typeof payload.project !== 'object') {
+    throw new Error('Share file is missing project data.');
+  }
+
+  if (!String(payload.company.name ?? '').trim()) {
+    throw new Error('Share file is missing a company name.');
+  }
+
+  if (!String(payload.project.name ?? '').trim()) {
+    throw new Error('Share file is missing a project name.');
+  }
+}
+
+export function parseShareFile(json) {
+  if (!json || typeof json !== 'object') {
+    throw new Error('Invalid share file.');
+  }
+
+  if (json.format !== SHARE_FORMAT) {
+    throw new Error('This file is not an Investment Portfolio share.');
+  }
+
+  if (json.encrypted === true) {
+    if (!json.ciphertext || !json.salt || !json.iv) {
+      throw new Error('Encrypted share file is incomplete.');
+    }
+
+    return { encrypted: true, file: json };
+  }
+
+  validateSharePayload(json);
+  return { encrypted: false, payload: json };
+}
+
+export async function decryptShareFile(encryptedFile, sharePin) {
+  return decryptPinProtectedFile(encryptedFile, sharePin, SHARE_PIN_LENGTH, validateSharePayload);
 }
 
 function buildShareableFile(blob, filename) {

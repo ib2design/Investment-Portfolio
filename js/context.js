@@ -19,6 +19,8 @@ export const viewState = {
   companyId: null,
   projectId: null,
   backupPayload: null,
+  shareImportFile: null,
+  shareImportPayload: null,
 };
 
 export let portfolioData = loadData();
@@ -51,6 +53,8 @@ export function resetViewStateAfterWipe() {
   viewState.companyId = null;
   viewState.projectId = null;
   viewState.backupPayload = null;
+  viewState.shareImportFile = null;
+  viewState.shareImportPayload = null;
 }
 
 export function setImportFileInput(input) {

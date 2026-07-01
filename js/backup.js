@@ -167,13 +167,13 @@ export async function encryptSharePayload(payload, pin) {
   };
 }
 
-export async function decryptBackupFile(encryptedFile, pin) {
+export async function decryptPinProtectedFile(encryptedFile, pin, pinLength, validatePayload) {
   if (!canUseBackupEncryption()) {
     throw new Error('Decryption is not available in this browser.');
   }
 
-  if (!isValidBackupPin(pin)) {
-    throw new Error(`PIN must be ${PIN_LENGTH} digits.`);
+  if (!isValidPinDigits(pin, pinLength)) {
+    throw new Error(`PIN must be ${pinLength} digits.`);
   }
 
   try {
@@ -184,15 +184,23 @@ export async function decryptBackupFile(encryptedFile, pin) {
     const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
     const payload = JSON.parse(new TextDecoder().decode(decrypted));
 
-    validatePlainBackupPayload(payload);
+    validatePayload(payload);
     return payload;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error('Could not read decrypted backup data.');
+      throw new Error('Could not read decrypted file data.');
     }
 
-    throw new Error('Incorrect PIN or corrupted backup file.');
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error('Incorrect PIN or corrupted file.');
   }
+}
+
+export async function decryptBackupFile(encryptedFile, pin) {
+  return decryptPinProtectedFile(encryptedFile, pin, PIN_LENGTH, validatePlainBackupPayload);
 }
 
 export function getBackupFilename() {

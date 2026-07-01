@@ -898,6 +898,19 @@ body.fab-visible {
   text-align: center;
 }
 
+.share-import-summary {
+  margin-bottom: 12px;
+}
+
+.share-import-details {
+  margin-bottom: 16px;
+}
+
+.share-import-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .detail-item {
   display: flex;
   justify-content: space-between;

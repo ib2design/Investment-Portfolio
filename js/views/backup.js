@@ -1,4 +1,4 @@
-import { PIN_LENGTH } from '../constants.js';
+import { PIN_LENGTH, SHARE_FORMAT } from '../constants.js';
 import { hasPin, isValidPin, verifyPin } from '../pin.js';
 import { dom, getData, viewState, setImportFileInput, importFileInput, reloadData } from '../context.js';
 import { navigate } from '../router.js';
@@ -22,6 +22,7 @@ import {
   pinFieldMarkup,
   bindPinForm,
 } from '../ui/forms.js';
+import { handleImportShareFile } from './shareImport.js';
 
 export function buildCurrentBackupPayload() {
   const data = getData();
@@ -46,7 +47,7 @@ export function ensureImportFileInput() {
 
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.json,application/json';
+  input.accept = `.json,.ipshare,application/json,application/octet-stream`;
   input.hidden = true;
   input.addEventListener('change', () => {
     const file = input.files?.[0];
@@ -86,10 +87,24 @@ export function handleExportBackupClick() {
 }
 
 export async function handleImportBackupFile(file) {
+  let json;
+
+  try {
+    json = JSON.parse(await file.text());
+  } catch {
+    window.alert('Could not read import file.');
+    return;
+  }
+
+  if (json?.format === SHARE_FORMAT) {
+    await handleImportShareFile(json);
+    return;
+  }
+
   let parsed;
 
   try {
-    parsed = parseBackupFile(JSON.parse(await file.text()));
+    parsed = parseBackupFile(json);
   } catch (error) {
     window.alert(error instanceof Error ? error.message : 'Could not read backup file.');
     return;

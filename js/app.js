@@ -2541,33 +2541,56 @@ function reportGainLossClass(value) {
   return '';
 }
 
-function formatReportMoney(value) {
+function reportMoneyParts(value) {
   if (value === null || value === undefined) {
-    return '—';
+    return null;
   }
 
   const amount = Number(value);
 
-  if (Number.isNaN(amount)) {
+  if (Number.isNaN(amount) || amount === 0) {
+    return null;
+  }
+
+  return {
+    amount,
+    abs: Math.abs(amount),
+    sign: amount < 0 ? '-' : '',
+  };
+}
+
+function formatReportMoney(value) {
+  const parts = reportMoneyParts(value);
+
+  if (!parts) {
     return '—';
   }
 
-  if (amount === 0) {
+  return `${parts.sign}$${Math.round(parts.abs)}`;
+}
+
+function formatReportTotalMoney(value) {
+  const parts = reportMoneyParts(value);
+
+  if (!parts) {
     return '—';
   }
 
-  const abs = Math.abs(amount);
-  const sign = amount < 0 ? '-' : '';
+  const { abs, sign } = parts;
 
-  if (abs >= 100000) {
+  if (abs >= 1000000) {
+    return `${sign}$${(abs / 1000000).toFixed(2)}M`;
+  }
+
+  if (abs > 1000) {
     return `${sign}$${(abs / 1000).toFixed(2)}k`;
   }
 
   return `${sign}$${Math.round(abs)}`;
 }
 
-function formatReportGainLoss(value) {
-  return formatReportMoney(value);
+function formatReportGainLoss(value, { total = false } = {}) {
+  return total ? formatReportTotalMoney(value) : formatReportMoney(value);
 }
 
 function calculateReportRoii(investment, gainLoss) {
@@ -2684,9 +2707,9 @@ function renderReportCompanySection({ company, rows, subtotal }) {
               { html: '<strong>Subtotal</strong>', className: 'report-subtotal-label' },
               { html: '' },
               { html: '' },
-              { html: `<strong>${escapeHtml(formatReportMoney(subtotal.investment))}</strong>`, className: 'report-num' },
+              { html: `<strong>${escapeHtml(formatReportTotalMoney(subtotal.investment))}</strong>`, className: 'report-num' },
               {
-                html: `<strong>${escapeHtml(formatReportGainLoss(subtotalGain))}</strong>`,
+                html: `<strong>${escapeHtml(formatReportGainLoss(subtotalGain, { total: true }))}</strong>`,
                 className: `report-num ${subtotalGainClass}`.trim(),
               },
               reportRoiiCell(subtotal.investment, subtotalGain, {
@@ -2756,9 +2779,9 @@ function renderReports() {
                 { html: '<strong>Grand total</strong>', className: 'report-subtotal-label' },
                 { html: '' },
                 { html: '' },
-                { html: `<strong>${escapeHtml(formatReportMoney(grand.investment))}</strong>`, className: 'report-num' },
+                { html: `<strong>${escapeHtml(formatReportTotalMoney(grand.investment))}</strong>`, className: 'report-num' },
                 {
-                  html: `<strong>${escapeHtml(formatReportGainLoss(grandGain))}</strong>`,
+                  html: `<strong>${escapeHtml(formatReportGainLoss(grandGain, { total: true }))}</strong>`,
                   className: `report-num ${grandGainClass}`.trim(),
                 },
                 reportRoiiCell(grand.investment, grandGain, { trackGain: grand.trackGain, strong: true }),

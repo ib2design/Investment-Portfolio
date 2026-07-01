@@ -15,8 +15,9 @@
   --danger-bg: #fdecea;
   --shadow: 0 8px 24px rgba(15, 32, 43, 0.08);
   --radius: 14px;
-  --nav-height: 64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-content-height: 52px;
+  --nav-height: calc(var(--nav-content-height) + var(--safe-bottom));
   --fab-clearance: 0px;
   --app-name-red: #f06a6a;
   --app-name-orange: #f5a623;
@@ -219,8 +220,7 @@ body.fab-visible {
   bottom: 0;
   transform: translateX(-50%);
   width: min(720px, 100%);
-  height: calc(var(--nav-height) + var(--safe-bottom));
-  padding: 6px 12px calc(6px + var(--safe-bottom));
+  padding: 4px 12px var(--safe-bottom);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
@@ -236,11 +236,12 @@ body.fab-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
+  justify-content: flex-end;
+  gap: 2px;
+  min-height: var(--nav-content-height);
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 4px 4px;
+  padding: 2px 4px;
 }
 
 .nav-icon {

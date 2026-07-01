@@ -75,6 +75,20 @@ function isValidPinDigits(pin, length) {
   return new RegExp(`^\\d{${length}}$`).test(pin);
 }
 
+function wrongPinMessage(pinLength) {
+  return pinLength === SHARE_PIN_LENGTH
+    ? 'Incorrect Share PIN. Try again.'
+    : 'Incorrect PIN. Try again.';
+}
+
+function isDecryptionFailure(error) {
+  return (
+    error instanceof DOMException
+    || error?.name === 'OperationError'
+    || error?.name === 'InvalidAccessError'
+  );
+}
+
 async function encryptJsonWithPin(payload, pin, pinLength) {
   if (!canUseBackupEncryption()) {
     throw new Error('Encryption is not available in this browser.');
@@ -187,15 +201,15 @@ export async function decryptPinProtectedFile(encryptedFile, pin, pinLength, val
     validatePayload(payload);
     return payload;
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error('Could not read decrypted file data.');
+    if (error instanceof SyntaxError || isDecryptionFailure(error)) {
+      throw new Error(wrongPinMessage(pinLength));
     }
 
-    if (error instanceof Error) {
+    if (error instanceof Error && error.message) {
       throw error;
     }
 
-    throw new Error('Incorrect PIN or corrupted file.');
+    throw new Error(wrongPinMessage(pinLength));
   }
 }
 

@@ -11,7 +11,6 @@ import {
 } from '../services/shareImport.js';
 import {
   showPinFormError,
-  runPinFormAction,
   sharePinFieldMarkup,
   bindPinForm,
 } from '../ui/forms.js';
@@ -61,8 +60,9 @@ export function renderShareImportPin() {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    showPinFormError(form, '');
 
-    void runPinFormAction(form, async () => {
+    void (async () => {
       const sharePin = String(new FormData(form).get('shareImportPin') ?? '');
 
       if (!isValidSharePin(sharePin)) {
@@ -79,7 +79,7 @@ export function renderShareImportPin() {
           error instanceof Error ? error.message : 'Could not open this share file.',
         );
       }
-    });
+    })();
   });
 }
 

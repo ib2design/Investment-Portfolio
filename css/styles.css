@@ -61,6 +61,15 @@ html,
 body {
   margin: 0;
   min-height: 100%;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 body {
@@ -1194,6 +1203,14 @@ body.help-modal-open {
   overflow-y: auto;
   text-align: left;
   -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.help-modal-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .settings-faq {
@@ -1571,10 +1588,18 @@ body.help-modal-open {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   padding: 24px;
   padding-top: max(24px, env(safe-area-inset-top, 0px));
   padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
   background: var(--bg);
+}
+
+.pin-lock::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .pin-lock.hidden {

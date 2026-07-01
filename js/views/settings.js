@@ -34,7 +34,11 @@ export function renderSettings() {
 
   dom.appRoot.innerHTML = `
     <section class="card settings-group">
-      <button type="button" class="btn btn-help btn-block" id="settings-help-button">Help / FAQ</button>
+      <div class="settings-top-bar" role="group" aria-label="Help and appearance">
+        <button type="button" class="btn btn-help" id="settings-help-button">Help / FAQ</button>
+        <button type="button" class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">\u{1F506} Light</button>
+        <button type="button" class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">\u263E Dark</button>
+      </div>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
       <h2 class="section-title">Portfolio</h2>
@@ -54,10 +58,11 @@ export function renderSettings() {
       <p class="field-hint">My share = company total ÷ partners.</p>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
-      <h2 class="section-title">Appearance</h2>
-      <div class="theme-options">
-        <button type="button" class="theme-option ${currentTheme === 'light' ? 'active' : ''}" data-theme="light">Light</button>
-        <button type="button" class="theme-option ${currentTheme === 'dark' ? 'active' : ''}" data-theme="dark">Dark</button>
+      <h2 class="section-title">Backup</h2>
+      <p class="field-hint">Export or import your full portfolio backup, or import a shared project file (${SHARE_FILE_EXTENSION}).</p>
+      <div class="security-options security-options--two">
+        <button type="button" class="btn btn-secondary security-action" id="settings-export-backup">Export</button>
+        <button type="button" class="btn btn-secondary security-action" id="settings-import-backup">Import</button>
       </div>
     </section>
     <section class="card settings-group" style="margin-top: 8px;">
@@ -79,14 +84,6 @@ export function renderSettings() {
       </div>
       `
       }
-    </section>
-    <section class="card settings-group" style="margin-top: 8px;">
-      <h2 class="section-title">Backup</h2>
-      <p class="field-hint">Export or import your full portfolio backup, or import a shared project file (${SHARE_FILE_EXTENSION}).</p>
-      <div class="security-options security-options--two">
-        <button type="button" class="btn btn-secondary security-action" id="settings-export-backup">Export</button>
-        <button type="button" class="btn btn-secondary security-action" id="settings-import-backup">Import</button>
-      </div>
     </section>
   `;
 

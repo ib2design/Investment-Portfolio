@@ -1102,6 +1102,23 @@ body.fab-visible {
   opacity: 0.85;
 }
 
+.settings-top-bar {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.settings-top-bar .btn-help,
+.settings-top-bar .theme-option {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 6px;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .help-modal {
   position: fixed;
   inset: 0;

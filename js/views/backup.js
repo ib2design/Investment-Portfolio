@@ -142,7 +142,7 @@ export function renderBackupExport() {
       <h2 class="section-title">Export backup</h2>
       <p class="field-hint">Enter your app PIN to create an encrypted backup file on your device.</p>
       <form class="form pin-form project-form" id="backup-export-form" novalidate>
-        ${pinFieldMarkup('pin', 'App PIN', 'current-password')}
+        ${pinFieldMarkup('pin', 'App PIN')}
         <p class="field-error hidden" data-form-error="backup-export"></p>
         <button type="submit" class="btn btn-primary btn-block">Export encrypted file</button>
       </form>
@@ -201,7 +201,7 @@ export function renderBackupImport() {
       <h2 class="section-title">Import backup</h2>
       <p class="field-hint">This backup is encrypted. Enter the app PIN that was used when it was exported.</p>
       <form class="form pin-form project-form" id="backup-import-form" novalidate>
-        ${pinFieldMarkup('pin', 'App PIN', 'current-password')}
+        ${pinFieldMarkup('pin', 'App PIN')}
         <p class="field-error hidden" data-form-error="backup-import"></p>
         <button type="submit" class="btn btn-primary btn-block">Decrypt and import</button>
       </form>

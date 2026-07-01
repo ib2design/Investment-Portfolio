@@ -852,6 +852,52 @@ body.fab-visible {
   opacity: 0.7;
 }
 
+.share-instructions {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.share-project-form {
+  margin: 0;
+  gap: 10px;
+}
+
+.share-project-form .field {
+  width: min(100%, 11rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.share-project-form .field label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.share-project-form .btn-primary {
+  background: var(--app-name-orange);
+  color: #ffffff;
+}
+
+.share-project-form .btn-primary:active {
+  opacity: 0.85;
+}
+
+.share-project-form .btn-secondary {
+  background: var(--surface);
+  color: var(--app-name-orange);
+  border: 1px solid var(--app-name-orange);
+}
+
+.share-project-form .btn-secondary:active {
+  opacity: 0.85;
+}
+
+.share-project-form [data-form-error]:not(.hidden) {
+  text-align: center;
+}
+
 .detail-item {
   display: flex;
   justify-content: space-between;
@@ -1483,6 +1529,18 @@ body.pin-locked .fab {
   letter-spacing: 0.35em;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  -webkit-text-security: disc;
+}
+
+.share-project-form.pin-form .pin-input {
+  width: 100%;
+  max-width: 11rem;
+  margin-inline: auto;
+  padding: 10px 8px;
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  border-radius: 10px;
+  -webkit-text-security: none;
 }
 
 .pin-form [data-form-error]:not(.hidden) {

@@ -19,6 +19,7 @@ import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml, detailRow, detailRowIf, gainLossStyle } from '../ui/dom.js';
 import { detailDocumentationRow } from '../ui/documentation.js';
+import { openShareProjectModal } from '../ui/shareModal.js';
 import { getCompany, getProject, getProjectFilter } from '../storage.js';
 import { getProjectMetrics, projectStatusBadge } from '../services/portfolioMetrics.js';
 
@@ -310,4 +311,12 @@ export function renderProjectDetail(projectId) {
       ${myFinancialRows}
     </section>
   `;
+
+  dom.appRoot.querySelector('.detail-share-button')?.addEventListener('click', () => {
+    if (!company) {
+      return;
+    }
+
+    openShareProjectModal({ company, project });
+  });
 }

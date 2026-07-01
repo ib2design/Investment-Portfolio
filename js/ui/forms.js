@@ -1,5 +1,5 @@
 import { PIN_LENGTH } from '../constants.js';
-import { bindPinInput } from '../formInputs.js';
+import { bindPinInput, focusPinInput } from '../formInputs.js';
 import { escapeHtml } from './dom.js';
 
 export function showPinFormError(form, message) {
@@ -24,26 +24,63 @@ export async function runPinFormAction(form, action) {
   }
 }
 
-export function pinFieldMarkup(id, label, autocomplete) {
+export function pinFieldMarkup(id, label, pinLength = PIN_LENGTH) {
   return `
     <div class="field" data-field="${id}">
       <label for="${id}">${escapeHtml(label)}</label>
       <input
         id="${id}"
         name="${id}"
-        type="password"
+        type="tel"
         class="pin-input"
         inputmode="numeric"
-        autocomplete="${autocomplete}"
-        maxlength="${PIN_LENGTH}"
+        pattern="[0-9]*"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        enterkeyhint="done"
+        maxlength="${pinLength}"
         required
       />
     </div>
   `;
 }
 
-export function bindPinForm(form) {
-  form.querySelectorAll('.pin-input').forEach((input) => bindPinInput(input, PIN_LENGTH));
+/** Share PIN fields avoid "confirm"/password-like names so iOS won't offer Strong Password. */
+export function sharePinFieldMarkup(id, label, pinLength) {
+  return `
+    <div class="field" data-field="${id}">
+      <label for="${id}">${escapeHtml(label)}</label>
+      <input
+        id="${id}"
+        name="${id}"
+        type="text"
+        class="pin-input share-pin-input"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="one-time-code"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        enterkeyhint="done"
+        maxlength="${pinLength}"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        data-form-type="other"
+        required
+      />
+    </div>
+  `;
+}
+
+export function bindPinForm(form, pinLength = PIN_LENGTH, options = {}) {
+  const { autocomplete = 'off', requireTap = true } = options;
+
+  form?.setAttribute('autocomplete', 'off');
+  form?.querySelectorAll('.pin-input').forEach((input) => {
+    bindPinInput(input, pinLength, { autocomplete, requireTap });
+  });
 }
 
 export function clearFormErrors(form) {

@@ -2,6 +2,7 @@ import { hasPin } from './pin.js';
 import { dom, viewState, reloadData, isPinUnlocked } from './context.js';
 import { resetScrollPosition } from './ui/chrome.js';
 import { closeHelpModal } from './ui/help.js';
+import { closeShareProjectModal } from './ui/shareModal.js';
 import { renderPortfolio } from './views/portfolio.js';
 import { renderCompanyDetail } from './views/companyDetail.js';
 import { renderProjectDetail } from './views/projectDetail.js';
@@ -140,12 +141,22 @@ export function bindGlobalEvents() {
   dom.bottomNav.querySelectorAll('.nav-item').forEach((button) => {
     button.addEventListener('click', () => {
       closeHelpModal();
+      closeShareProjectModal();
       navigate(button.dataset.nav);
     });
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && dom.helpModal && !dom.helpModal.classList.contains('hidden')) {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    if (dom.shareModal && !dom.shareModal.classList.contains('hidden')) {
+      closeShareProjectModal();
+      return;
+    }
+
+    if (dom.helpModal && !dom.helpModal.classList.contains('hidden')) {
       closeHelpModal();
     }
   });

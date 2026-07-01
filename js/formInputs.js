@@ -105,9 +105,22 @@ export function bindDecimalInput(input) {
   });
 }
 
-export function bindPinInput(input, maxLength = 6) {
+export function bindPinInput(input, maxLength = 6, { autocomplete = 'off', requireTap = true } = {}) {
   if (!input) {
     return;
+  }
+
+  input.setAttribute('autocomplete', autocomplete);
+
+  if (requireTap) {
+    input.readOnly = true;
+
+    const enableInput = () => {
+      input.readOnly = false;
+    };
+
+    input.addEventListener('focus', enableInput);
+    input.addEventListener('touchstart', enableInput, { passive: true });
   }
 
   input.addEventListener('keydown', (event) => blockInvalidNumberKeys(event, false));
@@ -123,4 +136,21 @@ export function bindPinInput(input, maxLength = 6) {
     input.value = sanitizeInteger(pasted).slice(0, maxLength);
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
+}
+
+export function focusPinInput(input, { delay = 0 } = {}) {
+  if (!input) {
+    return;
+  }
+
+  const focus = () => {
+    input.readOnly = false;
+    input.focus({ preventScroll: true });
+  };
+
+  if (delay > 0) {
+    window.setTimeout(focus, delay);
+  } else {
+    window.setTimeout(focus, 0);
+  }
 }

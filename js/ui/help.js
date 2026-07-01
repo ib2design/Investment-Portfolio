@@ -1,5 +1,6 @@
 import { dom } from '../context.js';
 import { faqContentMarkup } from './faq.js';
+import { closeShareProjectModal } from './shareModal.js';
 
 export function setHelpModalVisible(visible) {
   if (!dom.helpModal) {
@@ -16,6 +17,7 @@ export function openHelpModal() {
     return;
   }
 
+  closeShareProjectModal();
   dom.helpModalBody.innerHTML = faqContentMarkup();
   setHelpModalVisible(true);
 }

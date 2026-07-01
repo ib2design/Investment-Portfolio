@@ -10,6 +10,8 @@ export const dom = {
   pinLock: document.getElementById('pin-lock'),
   helpModal: document.getElementById('help-modal'),
   helpModalBody: document.getElementById('help-modal-body'),
+  shareModal: document.getElementById('share-modal'),
+  shareModalBody: document.getElementById('share-modal-body'),
 };
 
 export const viewState = {

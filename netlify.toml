@@ -1,0 +1,10 @@
+# Static site — no build step. Netlify provides free HTTPS for phone testing and daily use.
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

@@ -90,16 +90,21 @@ export async function renderPinLock() {
       <div id="pin-unlock-panel">
         <h1 class="pin-lock-title">Enter PIN</h1>
         <p class="pin-lock-subtitle">Enter your ${PIN_LENGTH}-digit PIN to open Investment Portfolio.</p>
-        <form class="form pin-form" id="pin-unlock-form" novalidate>
+        <form class="form pin-form" id="pin-unlock-form" autocomplete="off" novalidate>
           <div class="field">
             <label for="unlock-pin">PIN</label>
             <input
               id="unlock-pin"
-              name="pin"
-              type="password"
+              name="unlock-pin"
+              type="tel"
               class="pin-input"
               inputmode="numeric"
-              autocomplete="current-password"
+              pattern="[0-9]*"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              enterkeyhint="done"
               maxlength="${PIN_LENGTH}"
               required
             />
@@ -141,7 +146,7 @@ export async function renderPinLock() {
       return;
     }
 
-    const pin = new FormData(form).get('pin');
+    const pin = new FormData(form).get('unlock-pin');
 
     if (!isValidPin(pin)) {
       showPinFormError(form, `PIN must be ${PIN_LENGTH} digits.`);

@@ -44,6 +44,11 @@ export const PIN_HASH_KEY = 'investment-portfolio-pin-hash';
 
 export const PIN_LENGTH = 6;
 
+export const SHARE_PIN_LENGTH = 4;
+
+export const SHARE_FORMAT = 'investment-portfolio-share';
+export const SHARE_VERSION = 1;
+
 export const ERASE_DATA_CONFIRM_WORD = 'delete';
 
 /** @deprecated Migrated to PROJECT_FILTER_KEY */

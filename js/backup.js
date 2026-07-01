@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, PIN_LENGTH } from './constants.js';
+import { SCHEMA_VERSION, PIN_LENGTH, SHARE_PIN_LENGTH, SHARE_FORMAT, SHARE_VERSION } from './constants.js';
 
 export const BACKUP_FORMAT = 'investment-portfolio-backup';
 export const BACKUP_VERSION = 1;
@@ -53,8 +53,52 @@ export function canUseBackupEncryption() {
   return Boolean(globalThis.crypto?.subtle);
 }
 
+export function getEncryptionUnavailableMessage() {
+  if (!globalThis.isSecureContext) {
+    const { protocol, hostname } = globalThis.location ?? {};
+
+    if (protocol === 'http:' && hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return 'Sharing needs HTTPS. The Wi‑Fi test link from serve.bat (http://…) does not work on iPhone. Deploy to Netlify or GitHub Pages and open the https:// link on your phone.';
+    }
+
+    return 'Sharing needs HTTPS. Open the app from its https:// link, not http:// or a saved file.';
+  }
+
+  return 'Encryption is not available in this browser. Update Safari or reinstall the home-screen app.';
+}
+
 export function isValidBackupPin(pin) {
   return new RegExp(`^\\d{${PIN_LENGTH}}$`).test(pin);
+}
+
+function isValidPinDigits(pin, length) {
+  return new RegExp(`^\\d{${length}}$`).test(pin);
+}
+
+async function encryptJsonWithPin(payload, pin, pinLength) {
+  if (!canUseBackupEncryption()) {
+    throw new Error('Encryption is not available in this browser.');
+  }
+
+  if (!isValidPinDigits(pin, pinLength)) {
+    throw new Error(`PIN must be ${pinLength} digits.`);
+  }
+
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKeyFromPin(pin, salt);
+  const plaintext = new TextEncoder().encode(JSON.stringify(payload));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+
+  return {
+    encrypted: true,
+    algorithm: 'AES-GCM',
+    kdf: 'PBKDF2',
+    iterations: PBKDF2_ITERATIONS,
+    salt: bytesToBase64(salt),
+    iv: bytesToBase64(iv),
+    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+  };
 }
 
 export function validatePlainBackupPayload(payload) {
@@ -102,30 +146,24 @@ export function parseBackupFile(json) {
 }
 
 export async function encryptBackupPayload(payload, pin) {
-  if (!canUseBackupEncryption()) {
-    throw new Error('Encryption is not available in this browser.');
-  }
-
-  if (!isValidBackupPin(pin)) {
-    throw new Error(`PIN must be ${PIN_LENGTH} digits.`);
-  }
-
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKeyFromPin(pin, salt);
-  const plaintext = new TextEncoder().encode(JSON.stringify(payload));
-  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+  const encrypted = await encryptJsonWithPin(payload, pin, PIN_LENGTH);
 
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
-    encrypted: true,
-    algorithm: 'AES-GCM',
-    kdf: 'PBKDF2',
-    iterations: PBKDF2_ITERATIONS,
-    salt: bytesToBase64(salt),
-    iv: bytesToBase64(iv),
-    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+    exportedAt: new Date().toISOString(),
+    ...encrypted,
+  };
+}
+
+export async function encryptSharePayload(payload, pin) {
+  const encrypted = await encryptJsonWithPin(payload, pin, SHARE_PIN_LENGTH);
+
+  return {
+    format: SHARE_FORMAT,
+    version: SHARE_VERSION,
+    exportedAt: new Date().toISOString(),
+    ...encrypted,
   };
 }
 

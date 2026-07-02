@@ -2,17 +2,22 @@ import { dom, getData } from '../context.js';
 import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml } from '../ui/dom.js';
-import { documentationLinkHtml } from '../ui/documentation.js';
 import { companyColorStyle } from '../colors.js';
-import { getCompanyProjectsSectionTitle } from '../calculations.js';
-import { getCompany, getProjectsForCompany, getProjectFilter } from '../storage.js';
-import {
-  getProjectMetrics,
-  companyDetailStatsMarkup,
-  companyPartnerIcon,
-  renderProjectSummaryCard,
-} from '../services/portfolioMetrics.js';
-import { getVisibleProjectsForCompany } from '../services/visibility.js';
+import { formatUsdCompact, getProjectInvestmentAmount } from '../calculations.js';
+import { getCompany, getProjectsForCompany } from '../storage.js';
+
+function renderProjectCard(project) {
+  const invested = formatUsdCompact(getProjectInvestmentAmount(project));
+
+  return `
+    <article class="card clickable company-detail-project-card" data-project-id="${escapeHtml(project.id)}">
+      <div class="card-row">
+        <h2 class="card-title">${escapeHtml(project.name)}</h2>
+        <p class="card-amount">${escapeHtml(invested)}</p>
+      </div>
+    </article>
+  `;
+}
 
 export function renderCompanyDetail(companyId) {
   const data = getData();
@@ -23,53 +28,41 @@ export function renderCompanyDetail(companyId) {
     return;
   }
 
-  const projects = getVisibleProjectsForCompany(companyId);
+  const projects = getProjectsForCompany(data, companyId);
   const projectCount = projects.length;
-  const noProjects = getProjectsForCompany(data, companyId).length === 0;
-  const noProjectsWarning = noProjects
-    ? '<span class="company-no-projects-icon" aria-hidden="true">\u{26A0}</span> '
-    : '';
 
   updateChrome({
     showBack: true,
-    showFab: true,
-    fabAction: () => navigate('project-form', { companyId }),
+    showFab: false,
     headerLabel: 'Edit',
     headerHandler: () => navigate('company-form', { companyId }),
   });
 
-  const projectCards =
-    projects.length === 0
-      ? `<div class="empty-state"><p>No projects yet for this company.</p></div>`
-      : projects
-          .map((project) => {
-            const metrics = getProjectMetrics(project);
-
-            return renderProjectSummaryCard(project, metrics, {
-              dataAttrs: `data-project-id="${escapeHtml(project.id)}"`,
-            });
-          })
-          .join('');
-  const companyDocLink = documentationLinkHtml(company.documentationUrl);
+  const addProjectButton =
+    '<button type="button" class="btn btn-primary btn-block company-add-project" data-action="add-project">Add Project</button>';
+  const projectCards = projects.map((project) => renderProjectCard(project)).join('');
 
   dom.appRoot.innerHTML = `
     <section class="card company-card company-detail-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">
-      <div class="company-detail-header">
-        <span class="company-partner-icon" aria-hidden="true">${companyPartnerIcon(company.partnerCount)}</span>
-        <p class="company-detail-line">
-          ${noProjectsWarning}<span class="company-detail-name">${escapeHtml(company.name)}</span><span class="company-detail-meta"> · ${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</span>
-        </p>
-      </div>
-      ${companyDetailStatsMarkup(companyId)}
-      ${companyDocLink ? `<p class="card-meta company-detail-doc">${companyDocLink}</p>` : ''}
+      <p class="company-detail-line">
+        <span class="company-detail-name">${escapeHtml(company.name)}</span><span class="company-detail-meta"> · ${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</span>
+      </p>
     </section>
-    <h2 class="section-title">${escapeHtml(getCompanyProjectsSectionTitle(getProjectFilter()))}</h2>
-    <section class="card-list">${projectCards}</section>
+    ${projectCount === 0 ? addProjectButton : ''}
+    <h2 class="section-title">Projects</h2>
+    <section class="card-list">
+      ${projectCards}
+      ${projectCount > 0 ? addProjectButton : ''}
+    </section>
   `;
 
   dom.appRoot.querySelectorAll('[data-project-id]').forEach((card) => {
     card.addEventListener('click', () => {
       navigate('project-detail', { companyId, projectId: card.dataset.projectId });
     });
+  });
+
+  dom.appRoot.querySelectorAll('[data-action="add-project"]').forEach((button) => {
+    button.onclick = () => navigate('project-form', { companyId });
   });
 }

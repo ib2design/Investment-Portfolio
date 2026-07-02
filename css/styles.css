@@ -319,6 +319,31 @@ body.fab-visible {
   min-width: 0;
   font-size: 1rem;
   line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.company-add-project {
+  margin-bottom: 12px;
+}
+
+.company-detail-project-card .card-row {
+  align-items: center;
+  gap: 12px;
+}
+
+.company-detail-project-card .card-title {
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.company-detail-project-card .card-amount {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .company-detail-name {

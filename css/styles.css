@@ -689,6 +689,7 @@ body.fab-visible {
 .form {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .project-form {
@@ -698,6 +699,7 @@ body.fab-visible {
 .field {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .field label {
@@ -708,12 +710,21 @@ body.fab-visible {
 .field input,
 .field select,
 .field textarea {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
   background: var(--surface);
   color: var(--text);
+}
+
+.field input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 48px;
 }
 
 .field textarea {

@@ -110,6 +110,10 @@ function normalizeProject(project) {
         : Number(project.amountRecovered),
     documentationUrl:
       typeof project.documentationUrl === 'string' ? project.documentationUrl.trim() : '',
+    expectedReturn:
+      project.expectedReturn === null || project.expectedReturn === undefined || project.expectedReturn === ''
+        ? null
+        : Number(project.expectedReturn),
   };
 }
 

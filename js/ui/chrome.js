@@ -1,16 +1,6 @@
-import { getAmountDisplayMode } from '../storage.js';
-import { getAmountDisplayLabel } from '../calculations.js';
-import { dom, viewState } from '../context.js';
+import { dom } from '../context.js';
 
-export function updateAmountModeIndicator() {
-  const indicator = document.getElementById('app-amount-mode');
-
-  if (!indicator) {
-    return;
-  }
-
-  indicator.textContent = `(${getAmountDisplayLabel(getAmountDisplayMode())})`;
-}
+export function updateAmountModeIndicator() {}
 
 export function updateChrome({ subtitle, showBack, showFab, fabAction, headerLabel, headerHandler }) {
   if (subtitle) {
@@ -38,25 +28,6 @@ export function updateChrome({ subtitle, showBack, showFab, fabAction, headerLab
     dom.headerAction.classList.add('hidden');
     dom.headerAction.onclick = null;
   }
-
-  dom.bottomNav.querySelectorAll('.nav-item').forEach((button) => {
-    const nav = button.dataset.nav;
-    const portfolioViews = [
-      'portfolio',
-      'company-detail',
-      'project-detail',
-      'company-form',
-      'project-form',
-    ];
-    const isActive =
-      (nav === 'portfolio' && portfolioViews.includes(viewState.view)) ||
-      (nav === 'reminders' && viewState.view === 'reminders') ||
-      (nav === 'reports' && viewState.view === 'reports') ||
-      (nav === 'settings' && viewState.view === 'settings');
-    button.classList.toggle('active', isActive);
-  });
-
-  updateAmountModeIndicator();
 }
 
 export function resetScrollPosition() {

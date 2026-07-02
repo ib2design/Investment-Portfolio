@@ -5,7 +5,6 @@ export const dom = {
   pageSubtitle: document.getElementById('page-subtitle'),
   backButton: document.getElementById('back-button'),
   headerAction: document.getElementById('header-action'),
-  bottomNav: document.getElementById('bottom-nav'),
   fabButton: document.getElementById('fab-button'),
   pinLock: document.getElementById('pin-lock'),
   helpModal: document.getElementById('help-modal'),

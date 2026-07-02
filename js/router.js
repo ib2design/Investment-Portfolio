@@ -158,14 +158,6 @@ export function bindGlobalEvents() {
     window.open(href, '_blank', 'noopener,noreferrer');
   });
 
-  dom.bottomNav.querySelectorAll('.nav-item').forEach((button) => {
-    button.addEventListener('click', () => {
-      closeHelpModal();
-      closeShareProjectModal();
-      navigate(button.dataset.nav);
-    });
-  });
-
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') {
       return;

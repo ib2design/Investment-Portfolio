@@ -226,8 +226,7 @@ export function saveTheme(theme) {
 }
 
 export function getAmountDisplayMode() {
-  const mode = localStorage.getItem(AMOUNT_DISPLAY_KEY);
-  return mode === AMOUNT_DISPLAY.MY_SHARE ? AMOUNT_DISPLAY.MY_SHARE : AMOUNT_DISPLAY.GROUP;
+  return AMOUNT_DISPLAY.GROUP;
 }
 
 export function saveAmountDisplayMode(mode) {

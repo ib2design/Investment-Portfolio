@@ -233,8 +233,16 @@ body.fab-visible {
   gap: 12px;
 }
 
-.portfolio-add-company {
+.portfolio-actions {
+  display: grid;
+  gap: 8px;
   margin-top: 4px;
+}
+
+.portfolio-sample-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .card {

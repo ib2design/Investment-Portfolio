@@ -4,13 +4,137 @@ import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml } from '../ui/dom.js';
 import { companyColorStyle } from '../colors.js';
 import { formatUsdCompact } from '../calculations.js';
-import { AMOUNT_DISPLAY } from '../constants.js';
+import { AMOUNT_DISPLAY, PROJECT_STATUS } from '../constants.js';
 import { getCompanyDetailTotals } from '../services/portfolioMetrics.js';
-import { getProjectsForCompany } from '../storage.js';
+import {
+  createId,
+  deleteCompany,
+  getNextColorIndex,
+  getProjectsForCompany,
+  nowIso,
+  upsertCompany,
+  upsertProject,
+} from '../storage.js';
+
+const SAMPLE_COMPANY_NAME = 'Sample Holdings LLC';
 
 function companyCardMeta(companyId, partnerCount) {
   const projectCount = getProjectsForCompany(getData(), companyId).length;
   return `${projectCount} project${projectCount === 1 ? '' : 's'} · ${partnerCount} partner${partnerCount === 1 ? '' : 's'}`;
+}
+
+function getSampleCompany(data = getData()) {
+  return data.companies.find((company) => company.name === SAMPLE_COMPANY_NAME) ?? null;
+}
+
+function portfolioActionButtons() {
+  return `
+    <div class="portfolio-actions">
+      <button type="button" class="btn btn-primary btn-block" data-action="add-company">Add Company</button>
+      <div class="portfolio-sample-actions">
+        <button type="button" class="btn btn-primary btn-block" data-action="add-sample-data">Add Sample Data</button>
+        <button type="button" class="btn btn-danger btn-block" data-action="delete-sample-data">Delete Sample Data</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindPortfolioActions(root) {
+  root.querySelector('[data-action="add-company"]')?.addEventListener('click', () => navigate('company-form'));
+  root.querySelector('[data-action="add-sample-data"]')?.addEventListener('click', () => {
+    if (!createSampleData()) {
+      return;
+    }
+
+    renderPortfolio();
+  });
+  root.querySelector('[data-action="delete-sample-data"]')?.addEventListener('click', () => {
+    if (!deleteSampleData()) {
+      return;
+    }
+
+    renderPortfolio();
+  });
+}
+
+function createSampleData() {
+  const data = getData();
+
+  if (getSampleCompany(data)) {
+    window.alert('Sample data already exists.');
+    return false;
+  }
+
+  const timestamp = nowIso();
+  const companyId = createId();
+
+  upsertCompany(data, {
+    id: companyId,
+    name: SAMPLE_COMPANY_NAME,
+    partnerCount: 3,
+    documentationUrl: '',
+    colorIndex: getNextColorIndex(data),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+
+  [
+    {
+      name: 'Bridge Loan A',
+      dateInvested: '2024-01-15',
+      amount: 50000,
+      maturationDate: '2025-06-15',
+      expectedReturn: 4500,
+    },
+    {
+      name: 'Growth Fund B',
+      dateInvested: '2024-03-01',
+      amount: 120000,
+      maturationDate: '2026-03-01',
+      expectedReturn: 18000,
+    },
+  ].forEach((sample) => {
+    upsertProject(data, {
+      id: createId(),
+      companyId,
+      name: sample.name,
+      type: 'lent_interest',
+      typeOther: '',
+      status: PROJECT_STATUS.ACTIVE,
+      dateInvested: sample.dateInvested,
+      amount: sample.amount,
+      maturationDate: sample.maturationDate,
+      expectedReturn: sample.expectedReturn,
+      aprPercent: null,
+      aprType: null,
+      closedDate: null,
+      amountRecovered: null,
+      soldDate: null,
+      soldPrice: null,
+      loanPayoffDate: null,
+      estimatedValue: null,
+      reminderDate: null,
+      contactPerson: '',
+      documentationUrl: '',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+  });
+
+  return true;
+}
+
+function deleteSampleData() {
+  const data = getData();
+  const sampleCompany = getSampleCompany(data);
+
+  if (!sampleCompany) {
+    window.alert('No sample data to delete.');
+    return false;
+  }
+
+  deleteCompany(data, sampleCompany.id);
+  return true;
 }
 
 export function renderPortfolio() {
@@ -25,11 +149,11 @@ export function renderPortfolio() {
     dom.appRoot.innerHTML = `
       <section class="empty-state">
         <p>No companies yet. Add your first company to start tracking investments.</p>
-        <button type="button" class="btn btn-primary" data-action="add-company">Add Company</button>
+        ${portfolioActionButtons()}
       </section>
     `;
 
-    dom.appRoot.querySelector('[data-action="add-company"]').onclick = () => navigate('company-form');
+    bindPortfolioActions(dom.appRoot);
     return;
   }
 
@@ -58,7 +182,7 @@ export function renderPortfolio() {
   dom.appRoot.innerHTML = `
     <section class="card-list">
       ${cards}
-      <button type="button" class="btn btn-primary btn-block portfolio-add-company" data-action="add-company">Add Company</button>
+      ${portfolioActionButtons()}
     </section>
   `;
 
@@ -68,5 +192,5 @@ export function renderPortfolio() {
     });
   });
 
-  dom.appRoot.querySelector('[data-action="add-company"]').onclick = () => navigate('company-form');
+  bindPortfolioActions(dom.appRoot);
 }

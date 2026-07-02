@@ -153,7 +153,7 @@ export function validateProjectForm(values) {
 
 export function validateCompanyForm(values) {
   const errors = {};
-  const { name, partnerCount, documentationUrl } = values;
+  const { name, partnerCount } = values;
 
   if (!name) {
     errors.name = 'Company name is required.';
@@ -162,8 +162,6 @@ export function validateCompanyForm(values) {
   if (!Number.isInteger(partnerCount) || partnerCount < 1) {
     errors.partnerCount = 'Partner count must be at least 1.';
   }
-
-  validateDocumentationUrlField(documentationUrl, errors);
 
   return errors;
 }

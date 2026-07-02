@@ -3,16 +3,12 @@ import { dom, getData } from '../context.js';
 import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml, truncate, fieldLabel } from '../ui/dom.js';
-import { normalizeDocumentationUrl } from '../ui/documentation.js';
 import {
   applyFormErrors,
   bindFormFieldErrors,
 } from '../ui/forms.js';
 import { validateCompanyForm } from '../services/validation.js';
-import {
-  bindDateInputs,
-  bindIntegerInput,
-} from '../formInputs.js';
+import { bindIntegerInput } from '../formInputs.js';
 import {
   createId,
   deleteCompany,
@@ -46,12 +42,6 @@ export function renderCompanyForm(companyId) {
         <input id="partner-count" name="partnerCount" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" required value="${escapeHtml(existing?.partnerCount ?? 1)}" />
         <p class="field-error hidden" data-field-error="partnerCount"></p>
       </div>
-      <div class="field" data-field="documentationUrl">
-        <label for="company-documentation-url">Documentation Link</label>
-        <input id="company-documentation-url" name="documentationUrl" type="text" inputmode="url" autocomplete="off" maxlength="${LIMITS.documentationUrl}" value="${escapeHtml(existing?.documentationUrl || '')}" />
-        <span class="field-hint">Optional. Any web or cloud link.</span>
-        <p class="field-error hidden" data-field-error="documentationUrl"></p>
-      </div>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-block">${isEdit ? 'Save Changes' : 'Add Company'}</button>
         ${isEdit ? '<button type="button" class="btn btn-danger btn-block" id="delete-company">Delete Company</button>' : ''}
@@ -62,7 +52,6 @@ export function renderCompanyForm(companyId) {
   const form = dom.appRoot.querySelector('#company-form');
 
   bindIntegerInput(dom.appRoot.querySelector('#partner-count'));
-  bindDateInputs(form);
   bindFormFieldErrors(form);
 
   form.addEventListener('submit', (event) => {
@@ -71,8 +60,7 @@ export function renderCompanyForm(companyId) {
     const formData = new FormData(form);
     const name = truncate(formData.get('name'), LIMITS.companyName);
     const partnerCount = Number(formData.get('partnerCount'));
-    const documentationUrl = truncate(formData.get('documentationUrl'), LIMITS.documentationUrl);
-    const errors = validateCompanyForm({ name, partnerCount, documentationUrl });
+    const errors = validateCompanyForm({ name, partnerCount });
 
     if (!applyFormErrors(form, errors)) {
       return;
@@ -83,7 +71,7 @@ export function renderCompanyForm(companyId) {
       id: existing?.id || createId(),
       name,
       partnerCount,
-      documentationUrl: normalizeDocumentationUrl(documentationUrl),
+      documentationUrl: existing?.documentationUrl || '',
       colorIndex: existing?.colorIndex ?? getNextColorIndex(getData()),
       createdAt: existing?.createdAt || timestamp,
       updatedAt: timestamp,

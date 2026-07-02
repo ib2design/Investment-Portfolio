@@ -4,7 +4,7 @@ Single source of truth for what ships in each production version. When working o
 
 | Version | Status | Branch / tag | Doc |
 |---------|--------|--------------|-----|
-| v1 | Planned | `release/v1` → `v1.0.0` | [docs/releases/v1.md](docs/releases/v1.md) |
+| v1 | In progress | `release/v1` → `v1.0.0` | [docs/releases/v1.md](docs/releases/v1.md) |
 | v2 | Planned | `release/v2` → `v2.0.0` | [docs/releases/v2.md](docs/releases/v2.md) |
 | v3 | Planned | `release/v3` → `v3.0.0` | [docs/releases/v3.md](docs/releases/v3.md) |
 
@@ -18,4 +18,4 @@ Single source of truth for what ships in each production version. When working o
 ## Deploy notes
 
 - Production: Netlify (manual deploy from tagged commit).
-- Bump `app-version` / `code-version` in `index.html` and cache-bust `?v=` on CSS/JS each release.
+- Bump **`code-version`** in `index.html` and `version.json` on each code change; bump **`app-version`** only when shipping a new user-facing release.

@@ -241,8 +241,15 @@ body.fab-visible {
 
 .portfolio-sample-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+}
+
+.portfolio-sample-actions .btn {
+  font-size: 0.78rem;
+  line-height: 1.15;
+  padding: 12px 6px;
+  white-space: nowrap;
 }
 
 .card {

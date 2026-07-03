@@ -3,17 +3,23 @@ import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml } from '../ui/dom.js';
 import { companyColorStyle } from '../colors.js';
-import { formatUsdCompact, getProjectInvestmentAmount } from '../calculations.js';
+import { AMOUNT_DISPLAY } from '../constants.js';
+import { formatUsdCompact, getDisplayAmount, getProjectInvestmentAmount } from '../calculations.js';
 import { getCompany, getProjectsForCompany } from '../storage.js';
 
-function renderProjectCard(project) {
-  const invested = formatUsdCompact(getProjectInvestmentAmount(project));
+function renderProjectCard(project, partnerCount) {
+  const invested = formatUsdCompact(
+    getDisplayAmount(getProjectInvestmentAmount(project), partnerCount, AMOUNT_DISPLAY.MY_SHARE),
+  );
 
   return `
     <article class="card clickable company-detail-project-card" data-project-id="${escapeHtml(project.id)}">
       <div class="card-row">
         <h2 class="card-title">${escapeHtml(project.name)}</h2>
-        <p class="card-amount">${escapeHtml(invested)}</p>
+        <div class="project-card-amount">
+          <span class="card-share-label">My share</span>
+          <p class="card-amount">${escapeHtml(invested)}</p>
+        </div>
       </div>
     </article>
   `;
@@ -40,7 +46,7 @@ export function renderCompanyDetail(companyId) {
 
   const addProjectButton =
     '<button type="button" class="btn btn-primary btn-block company-add-project" data-action="add-project">Add Project</button>';
-  const projectCards = projects.map((project) => renderProjectCard(project)).join('');
+  const projectCards = projects.map((project) => renderProjectCard(project, company.partnerCount)).join('');
 
   dom.appRoot.innerHTML = `
     <section class="card company-card company-detail-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">

@@ -159,7 +159,7 @@ export function renderPortfolio() {
 
   const cards = data.companies
     .map((company) => {
-      const { invested } = getCompanyDetailTotals(company.id, AMOUNT_DISPLAY.GROUP);
+      const { invested } = getCompanyDetailTotals(company.id, AMOUNT_DISPLAY.MY_SHARE);
 
       return `
         <article class="card company-card clickable" style="${companyColorStyle(company.colorIndex)}" data-company-id="${escapeHtml(company.id)}">
@@ -171,6 +171,7 @@ export function renderPortfolio() {
               </div>
             </div>
             <div class="company-card-amount">
+              <span class="card-share-label">My share</span>
               <p class="card-amount">${escapeHtml(formatUsdCompact(invested))}</p>
             </div>
           </div>

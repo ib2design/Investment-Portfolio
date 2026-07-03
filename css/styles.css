@@ -289,10 +289,17 @@ body.fab-visible {
 
 .company-card-amount {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
   flex-shrink: 0;
-  text-align: right;
+}
+
+.card-share-label {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .company-card-amount-label {
@@ -346,6 +353,15 @@ body.fab-visible {
 .company-detail-project-card .card-row {
   align-items: center;
   gap: 12px;
+}
+
+.project-card-amount {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .company-detail-project-card .card-title {

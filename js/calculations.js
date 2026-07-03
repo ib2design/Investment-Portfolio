@@ -66,15 +66,27 @@ export function formatUsd(value) {
 
 export function formatUsdCompact(value) {
   const amount = Number(value || 0);
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
 
-  if (amount >= 1000) {
-    const thousands = amount / 1000;
+  if (abs >= 1000000) {
+    const millions = abs / 1000000;
+    const formatted =
+      millions >= 10 || Number.isInteger(millions)
+        ? String(Math.round(millions))
+        : millions.toFixed(1).replace(/\.0$/, '');
+
+    return `${sign}$${formatted}M`;
+  }
+
+  if (abs >= 1000) {
+    const thousands = abs / 1000;
     const formatted =
       thousands >= 100 || Number.isInteger(thousands)
         ? String(Math.round(thousands))
         : thousands.toFixed(1).replace(/\.0$/, '');
 
-    return `$${formatted}k`;
+    return `${sign}$${formatted}k`;
   }
 
   return new Intl.NumberFormat('en-US', {

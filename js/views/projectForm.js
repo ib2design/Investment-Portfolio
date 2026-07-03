@@ -58,7 +58,7 @@ export function renderProjectForm(companyId, projectId) {
         <p class="field-error hidden" data-field-error="dateInvested"></p>
       </div>
       <div class="field" data-field="amount">
-        <label for="amount">${fieldLabel(`Total Investment (${CURRENCY})`, true)}</label>
+        <label for="amount">${fieldLabel(`Total Investment (${CURRENCY})`, true)} <span class="field-label-note">(Co. total, not your share.)</span></label>
         <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required value="${escapeHtml(existing?.amount ?? '')}" />
         <p class="field-error hidden" data-field-error="amount"></p>
       </div>
@@ -68,7 +68,7 @@ export function renderProjectForm(companyId, projectId) {
         <p class="field-error hidden" data-field-error="maturationDate"></p>
       </div>
       <div class="field" data-field="expectedReturn">
-        <label for="expected-return">Expected Return (${CURRENCY})</label>
+        <label for="expected-return">Total Expected Return (${CURRENCY}) <span class="field-label-note">(Co. total)</span></label>
         <input id="expected-return" name="expectedReturn" type="text" inputmode="decimal" autocomplete="off" value="${escapeHtml(expectedReturnValue)}" />
         <p class="field-error hidden" data-field-error="expectedReturn"></p>
       </div>

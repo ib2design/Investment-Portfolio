@@ -752,6 +752,12 @@ body.fab-visible {
   color: var(--text-muted);
 }
 
+.field-label-note {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .required-mark {
   color: var(--danger);
   margin-left: 0.1em;

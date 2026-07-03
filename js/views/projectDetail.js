@@ -3,25 +3,33 @@ import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml, detailRow, detailRowIf } from '../ui/dom.js';
 import { formatDate, formatUsd } from '../calculations.js';
-import { getProject } from '../storage.js';
+import { getCompany, getProject } from '../storage.js';
 
-function getExpectedReturnDisplay(project) {
+function getTotalExpectedReturn(project) {
   if (project.expectedReturn !== null && project.expectedReturn !== undefined && project.expectedReturn !== '') {
-    return Number(project.expectedReturn);
+    const value = Number(project.expectedReturn);
+    return Number.isNaN(value) ? null : value;
   }
 
   return null;
 }
 
 export function renderProjectDetail(projectId) {
-  const project = getProject(getData(), projectId);
+  const data = getData();
+  const project = getProject(data, projectId);
 
   if (!project) {
     navigate('portfolio');
     return;
   }
 
-  const expectedReturn = getExpectedReturnDisplay(project);
+  const company = getCompany(data, project.companyId);
+  const partnerCount = Math.max(1, Number(company?.partnerCount) || 1);
+  const totalInvestment = Number(project.amount) || 0;
+  const myInvestment = totalInvestment / partnerCount;
+  const totalExpectedReturn = getTotalExpectedReturn(project);
+  const myExpectedReturn =
+    totalExpectedReturn !== null ? totalExpectedReturn / partnerCount : null;
 
   updateChrome({
     showBack: true,
@@ -35,16 +43,22 @@ export function renderProjectDetail(projectId) {
     <section class="card detail-grid detail-card">
       ${detailRow('Project Name', escapeHtml(project.name))}
       ${detailRow('Date Invested', escapeHtml(formatDate(project.dateInvested)))}
-      ${detailRow('Total Investment', escapeHtml(formatUsd(project.amount)))}
       ${detailRowIf(
         'Maturation Date',
         Boolean(project.maturationDate),
         escapeHtml(formatDate(project.maturationDate)),
       )}
+      ${detailRow('Total Investment', escapeHtml(formatUsd(totalInvestment)))}
       ${detailRowIf(
-        'Expected Return',
-        expectedReturn !== null && !Number.isNaN(expectedReturn),
-        escapeHtml(formatUsd(expectedReturn)),
+        'Total Expected Return',
+        totalExpectedReturn !== null,
+        escapeHtml(formatUsd(totalExpectedReturn)),
+      )}
+      ${detailRow('My Investment', escapeHtml(formatUsd(myInvestment)))}
+      ${detailRowIf(
+        'My Expected Return',
+        myExpectedReturn !== null,
+        escapeHtml(formatUsd(myExpectedReturn)),
       )}
     </section>
   `;

@@ -22,6 +22,7 @@
   --nav-top-padding: 4px;
   --nav-height: calc(var(--nav-top-padding) + var(--nav-content-height) + var(--nav-edge-padding-bottom));
   --fab-clearance: 0px;
+  --company-card-bg: #d2d9e0;
   --app-name-red: #f06a6a;
   --app-name-orange: #f5a623;
   --back-button-bg: #ffffff;
@@ -49,6 +50,7 @@
   --back-button-border: #4f6175;
   --back-button-fg: #7ec0ff;
   --back-button-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  --company-card-bg: #252d36;
 }
 
 *,
@@ -261,18 +263,7 @@ body.fab-visible {
 }
 
 .card.company-card {
-  background: var(--company-bg, var(--surface));
-  border-color: var(--company-border, var(--border));
-  border-left: 4px solid var(--company-accent, var(--primary));
-}
-
-[data-theme='dark'] .card.company-card {
-  background: var(--company-bg-dark, var(--surface));
-  border-color: var(--company-border-dark, var(--border));
-  border-left-color: var(--company-accent-dark, var(--company-accent));
-  box-shadow:
-    var(--shadow),
-    inset 0 1px 0 color-mix(in srgb, var(--company-accent-dark, var(--company-accent)) 18%, transparent);
+  background: var(--company-card-bg);
 }
 
 .company-card-heading {

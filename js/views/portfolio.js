@@ -2,7 +2,6 @@ import { dom, getData } from '../context.js';
 import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml } from '../ui/dom.js';
-import { companyColorStyle } from '../colors.js';
 import { formatUsdCompact } from '../calculations.js';
 import { AMOUNT_DISPLAY, PROJECT_STATUS } from '../constants.js';
 import { getCompanyDetailTotals } from '../services/portfolioMetrics.js';
@@ -162,7 +161,7 @@ export function renderPortfolio() {
       const { invested } = getCompanyDetailTotals(company.id, AMOUNT_DISPLAY.MY_SHARE);
 
       return `
-        <article class="card company-card clickable" style="${companyColorStyle(company.colorIndex)}" data-company-id="${escapeHtml(company.id)}">
+        <article class="card company-card clickable" data-company-id="${escapeHtml(company.id)}">
           <div class="card-row">
             <div class="company-card-heading">
               <div class="company-card-text">

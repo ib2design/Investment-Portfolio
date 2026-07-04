@@ -2,7 +2,6 @@ import { dom, getData } from '../context.js';
 import { navigate } from '../router.js';
 import { updateChrome } from '../ui/chrome.js';
 import { escapeHtml } from '../ui/dom.js';
-import { companyColorStyle } from '../colors.js';
 import { AMOUNT_DISPLAY } from '../constants.js';
 import { formatUsdCompact, getDisplayAmount, getProjectInvestmentAmount } from '../calculations.js';
 import { getCompany, getProjectsForCompany } from '../storage.js';
@@ -49,7 +48,7 @@ export function renderCompanyDetail(companyId) {
   const projectCards = projects.map((project) => renderProjectCard(project, company.partnerCount)).join('');
 
   dom.appRoot.innerHTML = `
-    <section class="card company-card company-detail-card" style="${companyColorStyle(company.colorIndex)}; margin-bottom: 12px;">
+    <section class="card company-card company-detail-card" style="margin-bottom: 12px;">
       <p class="company-detail-line">
         <span class="company-detail-name">${escapeHtml(company.name)}</span><span class="company-detail-meta"> · ${projectCount} project${projectCount === 1 ? '' : 's'} · ${company.partnerCount} partner${company.partnerCount === 1 ? '' : 's'}</span>
       </p>

@@ -144,14 +144,14 @@ button {
 
 .app-name {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 1.02rem;
+  font-size: 1.28rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .app-subtitle {
